@@ -1,0 +1,43 @@
+.do -> 실행 스크립트
+.go -> 페이지 이동
+
+login.do
+-로그인 실행 스크립트 , mongodb에 있는 회원 데이터에 접근해서 있으면 세션에 추가 없으면 error 발생
+
+signup.do
+-회원가입 실행 스크립트, html form을 검증해 필수조건을 채웠다면 mongodb에 insert
+
+signup.go
+-회원가입 페이지로 이동
+
+makemap.do
+-지도 추가 스크립트, map document에 map의 index를 추가한 뒤 
+user document의 mymap 필드에 map의 index를 추가한다
+
+savemap.do
+-지도 저장 스크립트, 사용자가 추가한 마커들을(마커를 추가할때 스크립트에서 캐치해둔다) 
+map document의 geojson object 필드에 추가한다, 저장하는 순간 temp 객체를 비우며
+temp 객체의 길이가 1 이상일때 페이지 이동이 일어난다면 경고한다
+ 
+sharemap.do
+-지도 공유 스크립트, map document의 field값을 바꿔 상단에 노출시킨다
+
+followmap.do
+-지도 팔로우 스크립트, user docunment의 follow_map 에 map의 index를 추가한 뒤 index에 해당하는 
+지도의 follow_cnt 필드값을 1 더해준다
+
+searchmap.do
+-지도 검색 스크립트, map document의 field중 region이 검색 쿼리와 일치하는 지도 객체를 
+follow_cnt필드 내림차순으로 리턴한다
+
+mainpage.go
+-메인 페이지로 이동
+
+mapsearch.go
+-지도 검색(목록) 페이지로 이동
+
+mymap.go
+-나만의 지도 페이지로 이동
+
+myfollowmap.go
+-내가 팔로우한 지도 페이지로 이동
