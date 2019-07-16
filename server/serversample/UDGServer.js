@@ -4,7 +4,7 @@ var url = require('url');
 var server = http.createServer(function (req, res) {   //create web server
     var _url = req.url;
     var qurey = url.parse(_url,true).query;
-    
+    process.setMaxListeners(20);
     
     if (_url == '/') { //check the URL of the current request
         
