@@ -33,9 +33,6 @@ meanstack 기반의 지도공유 플랫폼
 *view애 데이터 매핑하여 앱 완성 뒤 블록체인 스토리지로 데이터 이전
 
 
-구글 지도 api 인증키
-AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo
-
 
 
 
