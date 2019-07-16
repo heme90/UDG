@@ -1,0 +1,37 @@
+node.js
+-10.x.x LTS 버젼 사용
+-백엔드 개발
+
+angular.js
+-프론트 spa 구현
+-angular cli는 사용하지 않습니다
+
+Window 10 pro
+
+mongodb 4.0.8
+-스토리지 구축
+
+solidity 0.4.x
+-스토리지를 블록체인에 이전시킬때 사용할 개발언어입니다
+
+참고문서
+https://developers.google.com/maps/documentation/javascript/tutorial?hl=ko
+-구글 지도 api 문서
+
+https://ko.wikipedia.org/wiki/GeoJSON
+-geojson 타입 정리
+
+https://remix.ethereum.org/#optimize=false&evmVersion=null&version=soljson-v0.5.1+commit.c8a2cb62.js
+-remix ide
+
+https://www.jslint.com/
+-javascript validator
+
+https://docs.mongodb.com/manual/
+-mongodb 메뉴얼
+
+https://ovenapp.io/project/L8AQaDLU1ov73ArYDmfrWY22rohGJUfP#k07zx
+-프로젝트 웹디 초안
+
+https://github.com/heme90/UDG.git
+-프로젝트 git
