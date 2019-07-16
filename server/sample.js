@@ -32,6 +32,13 @@ var server = http.createServer(function (req, res) {   //create web server
     else{
         res.end('Invalid Request!');
     }
+
+    process.on('uncaughtException', function (err) {
+        //예상치 못한 예외 처리
+        console.log('uncaughtException 발생 : ' + err);
+        res.writeHead(302, {'Location' : '/'})
+    });
+
 });
 
 
