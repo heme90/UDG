@@ -1,0 +1,37 @@
+user collection의 index는 id
+udgmap collection의 index는 [작성자 id, 지도 중심좌표(혹은 지역), 지도이름]
+
+login.do
+-user collection의 user와 id, pw 가 일치하는 경우 user doc을 반환
+
+signup.do
+-front js에서 validation이 끝나기때문에 단순 insert문임
+
+makemap.do
+-front js에서 validation이 끝나기때문에 단순 insert문임
+
+savemap.do
+-front js에서 temp값에대한 검증 및 비우기 처리를 하므로 단순 update문임
+
+sharemap.do
+-udgmap의 field값중 share 여부를 나타내는 필드값을 1(또는 boolean true)
+로 변경한다
+angular app에서 전체지도 목록을 요청하면 필드값을 검증해서 해당 doc만 반환한다
+
+followmap.do
+-해당 지도의 index를 user collection의 필드에 입력한다
+그뒤 해당 지도의 doc의 follow_cnt를 나타내는 필드를 하나 증가시킨다
+
+searchmap.do
+-지도 중심좌표로 검색하여 share여부가 true인 것들을 follow수로 반환
+또는 gridfs 연산으로 범위에 해당해도 검색시킬수도 있음
+
+mainpage.go
+-전체 지도를 리턴해주는 쿼리 필요
+
+mymap.go
+-작성자 id가 유저와 같은 또는 유저 필드에 존재하는 index로 찾은
+지도를 리턴해주는 쿼리
+
+myfollowmap.go
+-유저가 팔로우한 지도 필드에 있는 지도를 찾아주는 쿼리 필요
