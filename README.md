@@ -26,6 +26,10 @@ BM
 
     -Visual Studio Code, Window PowerShell or CMD or MAC, Remix ide, Ganache, Docker
 
+협업툴
+
+    -git, trello
+
 
 개발 task
 
