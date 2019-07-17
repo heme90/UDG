@@ -1,14 +1,25 @@
 개발일정
 
 20190716 : 데이터 명세, node mvc 샘플 작성
+
 20190717 : angular.js html 프레임 구성, 요구사항 완성해서 node mvc 작성
-20190718 : mongodb crud 완성 , google map api 개발 시작
+,mongodb crud, 쿼리문 완성
+
+20190718 : mongodb node 연동 , google map api 개발 시작
+
 20190719 : 구성된 html에 googlemap 적용, geojson 통해 maker와 description이 달리는지 확인
+
 20190720 : 주말
+
 20190721 : 주말
-20190722 : 회원가입, 로그인 기능 완성, map share 기능 개발 시작
-20190723 : map follow 기능 개발 시작
-20190724 : main page 완성
-20190725 : app debug
-20190726 : app test
+
+20190722 : 회원가입, 로그인 기능 완성, map create,save, share 기능 개발 시작
+
+20190723 : map follow 기능 개발 시작 , map loading 테스트
+
+20190724 : main page 완성 , app test, app debug
+
+20190725 : app debug, eth public chain 적용
+
+20190726 : 최종 테스트 및 배포
  
