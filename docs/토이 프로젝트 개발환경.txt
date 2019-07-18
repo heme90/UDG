@@ -4,7 +4,7 @@ node.js
 
 angular.js
 -프론트 spa 구현
--angular cli는 사용하지 않습니다
+-angular cli(2)는 사용하지 않습니다
 
 Window 10 pro
 
