@@ -9,12 +9,12 @@
   <meta name="author" content="">
   <title>우리 동네 지도</title>
   <style>
-      
     #udgmap {
       height: 500px;
     }
     /* Optional: Makes the sample page fill the window. */
   </style>
+
   <!-- Bootsrap CDN -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
@@ -29,86 +29,88 @@
 
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css">
+
+  <!-- css -->
+  <link href="css/mycss.css" rel="stylesheet">
+
   <script>
-  var pmks={"c_id" : "aa", "center":{lat: 37.484780, lng: 127.016129} 
-        , "mapname" : "안녕" 
-        , "mks" : [{"title" : "1","lat" : 37.484781,"lng" : 127.0162, "desc" : {"con" : "no.1"} }
-        ,{"title" : "2","lat" : 37.484800,"lng" : 127.0163, "desc" : {"con" : "no.2"} }
-        ,{"title" : "3","lat" : 37.484789,"lng" : 127.0164, "desc" : {"con" : "no.3"} }]};
-        
-        
-  var map;
-  function initMap() {
+    var pmks = {
+      "c_id": "aa", "center": { lat: 37.484780, lng: 127.016129 }
+      , "mapname": "안녕"
+      , "mks": [{ "title": "1", "lat": 37.484781, "lng": 127.0162, "desc": { "con": "no.1" } }
+        , { "title": "2", "lat": 37.484800, "lng": 127.0163, "desc": { "con": "no.2" } }
+        , { "title": "3", "lat": 37.484789, "lng": 127.0164, "desc": { "con": "no.3" } }]
+    };
+
+    var map;
+    function initMap() {
       map = new google.maps.Map(document.getElementById('udgmap'), {
-      //여기다가 좌표를 입력합니다
-      center: pmks['center'],
-      zoom: 18
+        //여기다가 좌표를 입력합니다
+        center: pmks['center'],
+        zoom: 18
       });
-              
-      map.addListener('click', function(e) {
-          console.log(e);
-          console.log(e.latLng);
-          placeMarker("new",e.latLng, "new");
+
+      map.addListener('click', function (e) {
+        console.log(e);
+        console.log(e.latLng);
+        placeMarker("new", e.latLng, "new");
       });
       var m = pmks['mks']
-      for(var i in m) {
-          console.log(m[i]['title'])
-          placeMarker(m[i]['title'],{"lat" : m[i]['lat'] , "lng" : m[i]['lng']},m[i]['desc']['con'])
+      for (var i in m) {
+        console.log(m[i]['title'])
+        placeMarker(m[i]['title'], { "lat": m[i]['lat'], "lng": m[i]['lng'] }, m[i]['desc']['con'])
       }
-              //data = map.data.loadGeoJson('my.geojson');
-              //var ge =  {'type' : 'point', 'coordinates' : [[37.484780,127.016129]]};
-              //map.data.addGeoJson(ge);
+      //data = map.data.loadGeoJson('my.geojson');
+      //var ge =  {'type' : 'point', 'coordinates' : [[37.484780,127.016129]]};
+      //map.data.addGeoJson(ge);
 
 
-  }
+    }
 
-  function placeMarker(ti,position,cont) {
+    function placeMarker(ti, position, cont) {
       var marker = new google.maps.Marker({
-          position: position,
-          map: map,
-          draggable : true,
-          title : ti
+        position: position,
+        map: map,
+        draggable: true,
+        title: ti
       });
       marker.description = new google.maps.InfoWindow({
-          content:cont
+        content: cont
       });
       //마커에 클릭 이벤트를 다는 부분, readonly라면 필요없습니다
-      google.maps.event.addListener(marker, 'click', function(){
-          var desc = prompt("장소에 대한 설명을 입력해주세요",marker.description.content);
-          if (desc != null) {
-              altdesc(marker,desc);
-          };
-          this.description.setPosition(this.getPosition());
-          this.description.open(map); //map to display on
+      google.maps.event.addListener(marker, 'click', function () {
+        var desc = prompt("장소에 대한 설명을 입력해주세요", marker.description.content);
+        if (desc != null) {
+          altdesc(marker, desc);
+        };
+        this.description.setPosition(this.getPosition());
+        this.description.open(map); //map to display on
       });
       map.panTo(position);
-  }
+    }
 
-  function altdesc(marker,content){
+    function altdesc(marker, content) {
       marker.description = new google.maps.InfoWindow({
-          content:desc
+        content: desc
       });
-  }
-
-  
+    }
   </script>
-  
-  <script>
-      $('#myModal').on('shown.bs.modal', function () {
-        $('#myInput').focus()
-      })
-    </script>
-  </head>
+
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&callback=initMap"
-  async defer></script>
+    async defer></script>
+</head>
+
 <body>
+
   <div class="container-fluid p-0 m-0">
     <!-- header -->
     <div class="row d-flex justify-content-center py-3 m-0 border-bottom">
       <!-- home -->
       <div class="col-1 text-right p-0">
         <button type="button" class="btn btn-default" aria-label="Left Align">
-          <i class="fas fa-home fa-lg"></i>
+          <a href="/mainpage.go">
+            <i class="fas fa-home fa-lg" style="color: black;"></i>
+          </a>
         </button>
       </div>
 
@@ -117,7 +119,7 @@
         <div class="form-group d-flex align-items-center m-0">
           <span class="input-group-addon fas fa-search fa-sm"
             style="color:grey; position: relative; left:12px; z-index:1;"></span>
-          <input type="search" class="form-control ds-input" id="search-input" placeholder="Search" aria-label="Search"
+          <input type="search" class="form-control ds-input" id="search-input" placeholder="검색" aria-label="Search"
             spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"
             aria-owns="algolia-autocomplete-listbox-0" dir="auto"
             style="position: relative; right:10px; padding:3px 10px 3px 26px;">
@@ -126,7 +128,7 @@
 
       <!-- user -->
       <div class="col-1 text-left p-0">
-        <a class="btn btn-link-1 launch-modal" href="#" data-modal-id="modal-login">
+        <a class="btn" href="#" data-toggle="modal" data-target="#signinModal">
           <i class="fas fa-user-alt fa-lg"></i>
         </a>
       </div>
@@ -164,52 +166,80 @@
           </div>
 
           <!-- map view -->
-          <div class="col-sm-7" id = "udgmap">
-            
+          <div class="col-sm-7">
+            <div class="container text-center p-0">
+
+              <div class="row">
+                <div class="container p-0">
+
+                  <!-- map -->
+                  <div id="udgmap"></div>
+
+                </div>
+              </div>
+            </div>
+
+
           </div>
         </div>
       </div>
     </div>
-      <!-- MODAL -->
-      <div class="modal fade" id="modal-login" tabindex="-1" role="dialog" aria-labelledby="modal-login-label" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              
-              <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">
-                  <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
-                </button>
-                <h3 class="modal-title" id="modal-login-label">Login to UDG</h3>
-                <p>Enter your username and password to log on:</p>
+
+    <!-- modal -->
+    <div class="modal fade" id="signinModal" tabindex="-1" role="dialog" aria-labelledby="signinModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <!-- modal header -->
+          <div class="modal-header border-bottom-0 pb-0">
+            <div class="container-fluid">
+              <div class="row d-flex justify-content-center">
+                <h5 class="modal-title" id="signinModalLabel">우리 동네 지도</h5>
               </div>
-              
-              <div class="modal-body">
-                  <form role="form" action="" method="post" class="login-form">
-                    <div class="form-group">
-                      <label class="sr-only" for="form-username">Username</label>
-                        <input type="text" name="form-username" placeholder="Username..." class="form-username form-control" id="form-username">
-                      </div>
-                      <div class="form-group">
-                        <label class="sr-only" for="form-password">Password</label>
-                        <input type="password" name="form-password" placeholder="Password..." class="form-password form-control" id="form-password">
-                      </div>
-                      <div class="row">
-                        <div class="col-md-6">
-                          <button type="submit" class="login-btn">Sign in!</button>
-                        </div>
-                        <div class="col-md-6">
-                          <button class="login-btn">Sign Up!</button>
-                        </div>
-                      </div>
-                  </form>
+              <div class="row d-flex justify-content-center">
+                로그인
               </div>
-              
+            </div>
+            <!-- close button -->
+            <!-- <button type="button" class="close pl-0" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button> -->
+          </div>
+
+          <!-- modal body -->
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="sr-only" for="form-username">id</label>
+              <input type="text" name="form-username" placeholder="아이디" class="form-control bg-light border-0"
+                id="form-id">
+            </div>
+            <div class="form-group m-0">
+              <label class="sr-only" for="form-password">pw</label>
+              <input type="password" name="form-password" placeholder="패스워드" class="form-control bg-light border-0"
+                id="form-pw">
+            </div>
+          </div>
+
+          <!-- modal footer -->
+          <div class="modal-footer border-top-0 pt-0">
+            <div class="container-fluid">
+              <div class="row d-flex justify-content-center pb-3">
+                <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">로그인</button>
+              </div>
+              <div class="row d-flex justify-content-center">
+                <a href="#">비밀번호를 잊어버리셨나요?</a><br>
+              </div>
+              <div class="row d-flex justify-content-center">
+                계정이 없으신가요?&nbsp;<a href="/signup.go">회원가입</a>
+              </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
 
-  <!-- footer -->
-  <footer>
+    <!-- footer -->
+    <footer>
       <div class="container-fluid bg-light">
         <div class="row d-flex justify-content-center py-2 m-0">
           <p>&copy; 2019 UDG</p>

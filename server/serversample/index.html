@@ -24,20 +24,9 @@
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css">
 
+  <!-- css -->
+  <link href="css/mycss.css" rel="stylesheet">
 
-  <!-- <link href="css/justified-nav.css" rel="stylesheet">
-  <link href="css/form-elements.css" rel="stylesheet">
-  <script src="js/ie-emulation-modes-warning.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-  <script src="js/jquery.backstretch.min.js"></script>
-  <script src="js/scripts.js"></script>
-  <script src="js/ie10-viewport-bug-workaround.js"></script> -->
-
-  <script>
-    $('#myModal').on('shown.bs.modal', function () {
-      $('#myInput').focus()
-    })
-  </script>
   <script>
     var app = angular.module("myApp", []);
     app.controller("myCtrl", function ($scope) {
@@ -66,7 +55,6 @@
 
   </script>
 
-
 </head>
 
 <body>
@@ -77,7 +65,9 @@
       <!-- home -->
       <div class="col-1 text-right p-0">
         <button type="button" class="btn btn-default" aria-label="Left Align">
-          <i class="fas fa-home fa-lg"></i>
+          <a href="/mainpage.go">
+            <i class="fas fa-home fa-lg" style="color: black;"></i>
+          </a>
         </button>
       </div>
 
@@ -86,7 +76,7 @@
         <div class="form-group d-flex align-items-center m-0">
           <span class="input-group-addon fas fa-search fa-sm"
             style="color:grey; position: relative; left:12px; z-index:1;"></span>
-          <input type="search" class="form-control ds-input" id="search-input" placeholder="Search" aria-label="Search"
+          <input type="search" class="form-control ds-input" id="search-input" placeholder="검색" aria-label="Search"
             spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"
             aria-owns="algolia-autocomplete-listbox-0" dir="auto"
             style="position: relative; right:10px; padding:3px 10px 3px 26px;">
@@ -95,7 +85,7 @@
 
       <!-- user -->
       <div class="col-1 text-left p-0">
-        <a class="btn btn-link-1 launch-modal" href="#" data-modal-id="modal-login">
+        <a class="btn" href="#" data-toggle="modal" data-target="#signinModal">
           <i class="fas fa-user-alt fa-lg"></i>
         </a>
       </div>
@@ -125,67 +115,84 @@
         <!-- contents -->
         <div class="row" ng-app="myApp" ng-controller="myCtrl">
           <div class="col-sm-4 p-2" ng-repeat="map in maplist">
-              <div class="d-flex justify-content-center align-items-center" id="content_{{$index}}" style="background-color: #207ce5; width: 100%; height: 200px;">
-                  <!-- background-color: #207ce5; -->
-                <a href="#" class="text-white">
-                  {{$index}} {{map.name}}님의 {{map.center}} {{map.content}}
-                </a>
-              </div>
+            <div class="d-flex justify-content-center align-items-center" id="content_{{$index}}"
+              style="background-color: #207ce5; width: 100%; height: 200px;">
+              <!-- background-color: #207ce5; -->
+              <a href="#" class="text-white">
+                {{$index}} {{map.name}}님의 {{map.center}} {{map.content}}
+              </a>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- MODAL -->
-      <div class="modal fade" id="modal-login" tabindex="-1" role="dialog" aria-labelledby="modal-login-label"
-        aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
+    </div>
+  </div>
+  </div>
 
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal">
-                <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
-              </button>
-              <h3 class="modal-title" id="modal-login-label">Login to UDG</h3>
-              <p>Enter your username and password to log on:</p>
+
+  <!-- modal -->
+  <div class="modal fade" id="signinModal" tabindex="-1" role="dialog" aria-labelledby="signinModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <!-- modal header -->
+        <div class="modal-header border-bottom-0 pb-0">
+          <div class="container-fluid">
+            <div class="row d-flex justify-content-center">
+              <h5 class="modal-title" id="signinModalLabel">우리 동네 지도</h5>
             </div>
-
-            <div class="modal-body">
-              <form role="form" action="" method="post" class="login-form">
-                <div class="form-group">
-                  <label class="sr-only" for="form-username">Username</label>
-                  <input type="text" name="form-username" placeholder="Username..." class="form-username form-control"
-                    id="form-username">
-                </div>
-                <div class="form-group">
-                  <label class="sr-only" for="form-password">Password</label>
-                  <input type="password" name="form-password" placeholder="Password..."
-                    class="form-password form-control" id="form-password">
-                </div>
-                <div class="row">
-                  <div class="col-md-6">
-                    <button type="submit" class="login-btn">Sign in!</button>
-                  </div>
-                  <div class="col-md-6">
-                    <button class="login-btn">Sign Up!</button>
-                  </div>
-                </div>
-              </form>
+            <div class="row d-flex justify-content-center">
+              로그인
             </div>
+          </div>
+          <!-- close button -->
+          <!-- <button type="button" class="close pl-0" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button> -->
+        </div>
 
+        <!-- modal body -->
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="sr-only" for="form-username">id</label>
+            <input type="text" name="form-username" placeholder="아이디" class="form-control bg-light border-0"
+              id="form-id">
+          </div>
+          <div class="form-group m-0">
+            <label class="sr-only" for="form-password">pw</label>
+            <input type="password" name="form-password" placeholder="패스워드" class="form-control bg-light border-0"
+              id="form-pw">
+          </div>
+        </div>
+
+        <!-- modal footer -->
+        <div class="modal-footer border-top-0 pt-0">
+          <div class="container-fluid">
+            <div class="row d-flex justify-content-center pb-3">
+              <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">로그인</button>
+            </div>
+            <div class="row d-flex justify-content-center">
+              <a href="#">비밀번호를 잊어버리셨나요?</a><br>
+            </div>
+            <div class="row d-flex justify-content-center">
+              계정이 없으신가요?&nbsp;<a href="/signup.go">회원가입</a>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-    <!-- footer -->
-    <footer>
-      <div class="container-fluid bg-light">
-        <div class="row d-flex justify-content-center py-2 m-0">
-          <p>&copy; 2019 UDG</p>
-        </div>
+
+  <!-- footer -->
+  <footer>
+    <div class="container-fluid bg-light">
+      <div class="row d-flex justify-content-center py-2 m-0">
+        <p>&copy; 2019 UDG</p>
       </div>
-    </footer>
+    </div>
+  </footer>
 
 </body>
 

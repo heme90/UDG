@@ -9,12 +9,12 @@
   <meta name="author" content="">
   <title>우리 동네 지도</title>
   <style>
-      
     #udgmap {
       height: 500px;
     }
     /* Optional: Makes the sample page fill the window. */
   </style>
+
   <!-- Bootsrap CDN -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
@@ -30,84 +30,75 @@
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css">
 
+  <!-- css -->
+  <link href="css/mycss.css" rel="stylesheet">
 
-  <!-- <link href="css/justified-nav.css" rel="stylesheet">
-  <link href="css/form-elements.css" rel="stylesheet">
-  <script src="js/ie-emulation-modes-warning.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-  <script src="js/jquery.backstretch.min.js"></script>
-  <script src="js/scripts.js"></script>
-  <script src="js/ie10-viewport-bug-workaround.js"></script> -->
   <script>
-    var pmks={"c_id" : "aa", "center":{lat: 37.484780, lng: 127.016129} 
-          , "mapname" : "안녕" 
-          , "mks" : [{"title" : "1","lat" : 37.484781,"lng" : 127.0162, "desc" : {"con" : "no.1"} }
-          ,{"title" : "2","lat" : 37.484800,"lng" : 127.0163, "desc" : {"con" : "no.2"} }
-          ,{"title" : "3","lat" : 37.484789,"lng" : 127.0164, "desc" : {"con" : "no.3"} }]};
-          
-          
+    var pmks = {
+      "c_id": "aa", "center": { lat: 37.484780, lng: 127.016129 }
+      , "mapname": "안녕"
+      , "mks": [{ "title": "1", "lat": 37.484781, "lng": 127.0162, "desc": { "con": "no.1" } }
+        , { "title": "2", "lat": 37.484800, "lng": 127.0163, "desc": { "con": "no.2" } }
+        , { "title": "3", "lat": 37.484789, "lng": 127.0164, "desc": { "con": "no.3" } }]
+    };
+
+
     var map;
     function initMap() {
-        map = new google.maps.Map(document.getElementById('udgmap'), {
+      map = new google.maps.Map(document.getElementById('udgmap'), {
         //여기다가 좌표를 입력합니다
         center: pmks['center'],
         zoom: 18
-        });
-                
-        map.addListener('click', function(e) {
-            console.log(e);
-            console.log(e.latLng);
-            placeMarker("new",e.latLng, "new");
-        });
-        var m = pmks['mks']
-        for(var i in m) {
-            console.log(m[i]['title'])
-            placeMarker(m[i]['title'],{"lat" : m[i]['lat'] , "lng" : m[i]['lng']},m[i]['desc']['con'])
-        }
-                //data = map.data.loadGeoJson('my.geojson');
-                //var ge =  {'type' : 'point', 'coordinates' : [[37.484780,127.016129]]};
-                //map.data.addGeoJson(ge);
-  
-  
+      });
+
+      map.addListener('click', function (e) {
+        console.log(e);
+        console.log(e.latLng);
+        placeMarker("new", e.latLng, "new");
+      });
+      var m = pmks['mks']
+      for (var i in m) {
+        console.log(m[i]['title'])
+        placeMarker(m[i]['title'], { "lat": m[i]['lat'], "lng": m[i]['lng'] }, m[i]['desc']['con'])
+      }
+      //data = map.data.loadGeoJson('my.geojson');
+      //var ge =  {'type' : 'point', 'coordinates' : [[37.484780,127.016129]]};
+      //map.data.addGeoJson(ge);
+
+
     }
-  
-    function placeMarker(ti,position,cont) {
-        var marker = new google.maps.Marker({
-            position: position,
-            map: map,
-            draggable : true,
-            title : ti
-        });
-        marker.description = new google.maps.InfoWindow({
-            content:cont
-        });
-        //마커에 클릭 이벤트를 다는 부분, readonly라면 필요없습니다
-        google.maps.event.addListener(marker, 'click', function(){
-            var desc = prompt("장소에 대한 설명을 입력해주세요",marker.description.content);
-            if (desc != null) {
-                altdesc(marker,desc);
-            };
-            this.description.setPosition(this.getPosition());
-            this.description.open(map); //map to display on
-        });
-        map.panTo(position);
+
+    function placeMarker(ti, position, cont) {
+      var marker = new google.maps.Marker({
+        position: position,
+        map: map,
+        draggable: true,
+        title: ti
+      });
+      marker.description = new google.maps.InfoWindow({
+        content: cont
+      });
+      //마커에 클릭 이벤트를 다는 부분, readonly라면 필요없습니다
+      google.maps.event.addListener(marker, 'click', function () {
+        var desc = prompt("장소에 대한 설명을 입력해주세요", marker.description.content);
+        if (desc != null) {
+          altdesc(marker, desc);
+        };
+        this.description.setPosition(this.getPosition());
+        this.description.open(map); //map to display on
+      });
+      map.panTo(position);
     }
-  
-    function altdesc(marker,content){
-        marker.description = new google.maps.InfoWindow({
-            content:desc
-        });
+
+    function altdesc(marker, content) {
+      marker.description = new google.maps.InfoWindow({
+        content: desc
+      });
     }
-  
-    
-    </script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&callback=initMap"
-  async defer></script>
-  <script>
-    $('#myModal').on('shown.bs.modal', function () {
-      $('#myInput').focus()
-    })
   </script>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&callback=initMap"
+    async defer></script>
 </head>
 
 <body>
@@ -118,7 +109,9 @@
       <!-- home -->
       <div class="col-1 text-right p-0">
         <button type="button" class="btn btn-default" aria-label="Left Align">
-          <i class="fas fa-home fa-lg"></i>
+          <a href="/mainpage.go">
+            <i class="fas fa-home fa-lg" style="color: black;"></i>
+          </a>
         </button>
       </div>
 
@@ -127,7 +120,7 @@
         <div class="form-group d-flex align-items-center m-0">
           <span class="input-group-addon fas fa-search fa-sm"
             style="color:grey; position: relative; left:12px; z-index:1;"></span>
-          <input type="search" class="form-control ds-input" id="search-input" placeholder="Search" aria-label="Search"
+          <input type="search" class="form-control ds-input" id="search-input" placeholder="검색" aria-label="Search"
             spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"
             aria-owns="algolia-autocomplete-listbox-0" dir="auto"
             style="position: relative; right:10px; padding:3px 10px 3px 26px;">
@@ -136,7 +129,7 @@
 
       <!-- user -->
       <div class="col-1 text-left p-0">
-        <a class="btn btn-link-1 launch-modal" href="#" data-modal-id="modal-login">
+        <a class="btn" href="#" data-toggle="modal" data-target="#signinModal">
           <i class="fas fa-user-alt fa-lg"></i>
         </a>
       </div>
@@ -160,46 +153,46 @@
 
   <div class="container-fluid h-100 p-0 m-0 bg-light">
     <!-- my map -->
-    <div class="row d-flex justify-content-center">
-        <div class="col-lg-10 mx-4">
+    <div class="row d-flex justify-content-center m-0">
+      <div class="col-lg-10 mx-4">
 
-          <div class="row d-flex justify-content-center">
-            <!-- map list -->
-            <div class="col-sm-3">
-              <ul class="pl-4">
-                <li><a href="#">서초구 맛집지도</a></li>
-                <li><a href="#">광진구 둘레길</a></li>
-                <li><a href="#">강남구 핫플레이스</a></li>
-              </ul>
-            </div>
+        <div class="row d-flex justify-content-center">
+          <!-- map list -->
+          <div class="col-sm-3">
+            <ul class="pl-4">
+              <li><a href="#">서초구 맛집지도</a></li>
+              <li><a href="#">광진구 둘레길</a></li>
+              <li><a href="#">강남구 핫플레이스</a></li>
+            </ul>
+          </div>
 
-            <!-- map view -->
-            <div class="col-sm-7">
-              <div class="container-fluid text-center">
+          <!-- map view -->
+          <div class="col-sm-7">
+            <div class="container text-center p-0">
 
-                <div class="row">
-                  <div class="container-fluid">
+              <div class="row">
+                <div class="container p-0">
 
-                    <!-- map -->
-                    <div id = "udgmap">
-                    </div>
+                  <!-- map -->
+                  <div id="udgmap"></div>
 
-                    <!-- share & upload -->
-                    <div class="row">
-                      <div class="container-fluid text-right px-0 py-3">
-                        <a href="#" class="col-1">
-                          <i class="fas fa-share-alt fa-lg" style="color:grey;"></i>
-                        </a>
-                        <a href="#" class="col-1">
-                          <i class="fas fa-cloud-upload-alt fa-lg" style="color:grey;"></i>
-                        </a>
-                      </div>
+                  <!-- share & upload -->
+                  <div class="row">
+                    <div class="container-fluid text-right px-0 py-3">
+                      <a href="#" class="col-1">
+                        <i class="fas fa-share-alt fa-lg" style="color:grey;"></i>
+                      </a>
+                      <a href="#" class="col-1">
+                        <i class="fas fa-cloud-upload-alt fa-lg" style="color:grey;"></i>
+                      </a>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+
           </div>
+        </div>
       </div>
     </div>
 
@@ -242,6 +235,60 @@
             </form>
           </div>
 
+        </div>
+      </div>
+    </div>
+
+
+    <!-- modal -->signinModal
+    <div class="modal fade" id="signinModal" tabindex="-1" role="dialog" aria-labelledby="signinModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <!-- modal header -->
+          <div class="modal-header border-bottom-0 pb-0">
+            <div class="container-fluid">
+              <div class="row d-flex justify-content-center">
+                <h5 class="modal-title" id="signinModalLabel">우리 동네 지도</h5>
+              </div>
+              <div class="row d-flex justify-content-center">
+                로그인
+              </div>
+            </div>
+            <!-- close button -->
+            <!-- <button type="button" class="close pl-0" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button> -->
+          </div>
+
+          <!-- modal body -->
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="sr-only" for="form-username">id</label>
+              <input type="text" name="form-username" placeholder="아이디" class="form-control bg-light border-0"
+                id="form-id">
+            </div>
+            <div class="form-group m-0">
+              <label class="sr-only" for="form-password">pw</label>
+              <input type="password" name="form-password" placeholder="패스워드" class="form-control bg-light border-0"
+                id="form-pw">
+            </div>
+          </div>
+
+          <!-- modal footer -->
+          <div class="modal-footer border-top-0 pt-0">
+            <div class="container-fluid">
+              <div class="row d-flex justify-content-center pb-3">
+                <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">로그인</button>
+              </div>
+              <div class="row d-flex justify-content-center">
+                <a href="#">비밀번호를 잊어버리셨나요?</a><br>
+              </div>
+              <div class="row d-flex justify-content-center">
+                계정이 없으신가요?&nbsp;<a href="/signup.go">회원가입</a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
