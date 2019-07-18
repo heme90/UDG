@@ -42,11 +42,28 @@
         , { "title": "3", "lat": 37.484789, "lng": 127.0164, "desc": { "con": "no.3" } }]
     };
 
+    var follow = [
+      {"c_id" : "yunki", "center":{lat: 37.484780, lng: 127.016129}, "mapname" : "서초구맛집",
+      "mks" : [{"title" : "1","lat" : 37.484781,"lng" : 127.0162, "desc" : {"con" : "족발맛집"} },
+      {"title" : "2","lat" : 37.484800,"lng" : 127.0163, "desc" : {"con" : "초밥맛집"} },
+      {"title" : "3","lat" : 37.484789,"lng" : 127.0164, "desc" : {"con" : "닭발맛집"} }],
+      "share":1},
+      {"c_id" : "park", "center":{lat: 37.507839, lng: 127.110606}, "mapname" : "송리단길맛집",
+      "mks" : [{"title" : "1","lat" : 37.508622,"lng" : 127.110005, "desc" : {"con" : "탕수육맛집"} },
+      {"title" : "2","lat" : 37.507711,"lng" : 127.109190, "desc" : {"con" : "간장게장맛집"} },
+      {"title" : "3","lat" : 37.506290,"lng" : 127.108868, "desc" : {"con" : "소곱창맛집"} }],
+      "share":1}
+    ]
+    
+    alert(follow[0]['c_id'])
     var map;
-    function initMap() {
+    function initMap(idx) {
+      if(!idx){
+          idx = 0;
+      }
       map = new google.maps.Map(document.getElementById('udgmap'), {
         //여기다가 좌표를 입력합니다
-        center: pmks['center'],
+        center: follow[idx]['center'],
         zoom: 18
       });
 
@@ -55,7 +72,7 @@
         console.log(e.latLng);
         placeMarker("new", e.latLng, "new");
       });
-      var m = pmks['mks']
+      var m = follow[idx]['mks']
       for (var i in m) {
         console.log(m[i]['title'])
         placeMarker(m[i]['title'], { "lat": m[i]['lat'], "lng": m[i]['lng'] }, m[i]['desc']['con'])
@@ -96,8 +113,8 @@
     }
   </script>
 
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&callback=initMap"
-    async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&callback=initMap"
+async defer></script>
 </head>
 
 <body>
@@ -159,9 +176,8 @@
           <!-- map list -->
           <div class="col-sm-3">
             <ul class="pl-4">
-              <li><a href="#">이상준의 서초구 맛집지도</a></li>
-              <li><a href="#">박개벙의 광진구 둘레길</a></li>
-              <li><a href="#">조윤기의 강남구 핫플레이스</a></li>
+              <li><a href="#" onclick="initMap(0)">yunki의 서초구맛집</a></li>
+              <li><a href="#" onclick="initMap(1)">park의 송리단길맛집</a></li>
             </ul>
           </div>
 
