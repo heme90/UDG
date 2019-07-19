@@ -1,7 +1,7 @@
 var http = require('http'); // Import Node.js core module
 var fs = require('fs');
 var url = require('url');
-var mong = require('./scripts/udg_mongo.js')
+//var mong = require('./scripts/udg_mongo.js')
 var server = http.createServer(function (req, res) {   //create web server
     var _url = req.url;
     var qurey = url.parse(_url,true).query;
