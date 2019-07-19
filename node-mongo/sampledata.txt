@@ -1,0 +1,69 @@
+﻿sample data
+
+[user collection]
+
+    (fields)
+    id,
+    pw,
+    email,
+    mymap,
+    	creator,
+    	dname,
+    	dcenter,
+    followmap,
+    	creator,
+    	dname,
+    	dcenter
+
+    //data
+    'nang', 'aaa', 'nang@aaa.com'
+    'karlie','bbb','karlie@bbb.com'
+    
+    //mymap
+    'nang','공덕',[37.543433, 126.951544]
+    
+    //followmap
+    'karlie','서초', [37.491818, 127.010547]
+    
+    //insert data in mongodb on shell 
+    db.user.insertOne({id: 'nang',pw:'aaa',email:'nang@aaa.com', mymap : {creator:'nang', dname:'공덕',dcenter: [37.543433,126.951544]}});
+    db.user.insertOne({id: 'karlie',pw:'bbb',email:'karlie@bbb.com', mymap : {creator:'karlie', dname:'서초',dcenter: [37.491818, 127.010547]}});
+    db.user.updateOne({id:'nang'},{$set: {"followmap.creator":'karlie',"followmap.dname":'서초', "followmap.dcenter":[37.491818, 127.010547]}});
+
+
+
+
+
+
+
+
+[udgmap collection]
+
+    (fields)
+    id,
+    dname,
+    dcenter,
+    onlyme,
+    cnt_follow,
+    markers,
+    	mname,
+    	lat,
+    	lng,
+    	desc,
+    		comment
+
+
+    //markers
+    'nang','공덕',[37.543433, 126.951544]
+    [{'미분당',[37.541685, 126.951306],'쌀국수집'},
+    {'굴다리김치찌개',[37.541793, 126.950690],'김치찌개집'}]
+    
+    //followmap
+    'karlie','서초', [37.491818, 127.010547]
+    [{'엔코아', 37.490921, 127.010564, '본사건물'},
+    {'플레이데이터',37.486627, 127.020731, '교육센터'}]
+
+    //insert data in mongodb on shell 
+    db.udgmap.insertOne({id:'nang', dname:'공덕',dcenter:[37.543433, 126.951544], onlyme:0, cnt_follow:0, markers: [{title: '미분당', lat:37.541685, lng:126.951306, desc: {content:'쌀국수집'}}, {title:'굴다리김치찌개',lat:37.541793, lng:126.950690, desc: {content:'김치찌개집'}}]});
+    db.udgmap.insertOne({id:'karlie', dname:'서초', dcenter:[37.491818, 127.010547], onlyme:0, cnt_follow:0,  markers: [{title: '엔코아', lat:37.490921, lng:127.010564, desc: {content:'본사건물'}}, {title:'플레이데이터',lat:37.486627, lng: 127.020731,desc: {content:'교육센터'}}]});
+    db.udgmap.insertOne({id:'karlie', dname: '남터', dcenter:[37.484499, 127.016054], onlyme:0, cnt_follow:0, markers: []});
