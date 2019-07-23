@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <title>우리 동네 지도</title>
+
+  <!-- Bootsrap CDN -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+  <!-- angular js -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css">
+
+  <!-- css -->
+  <link href="css/mycss.css" rel="stylesheet">
+
+  <script>
+    var app = angular.module("myApp", []);
+    app.controller("myCtrl", function ($scope) {
+      $scope.maplist = [
+        { id: 1, center: '동대문구', name: '이상준', content: '맛집 지도' },
+        { id: 2, center: '서초구', name: '이상준', content: '피씨방 추천' },
+        { id: 3, center: '은평구', name: '조윤기', content: '편의점포차' },
+        { id: 4, center: '마포구', name: '이낭경', content: '여행 지도' },
+        { id: 5, center: '용산구', name: '이낭경', content: '하우스클럽' }
+      ];
+      /*
+      // var colors = ['rgba(255, 0, 0, 0.7)', 'rgba(0, 255, 0, 0.7)', 'rgba(0, 0, 255, 0.7)'];
+      var colors = ['#ff0000', '#00ff00', '#000ff'];
+      
+      for (var i = 0; i < $scope.maplist.length; i++) {
+        var random_color = colors[Math.floor(Math.random() * colors.length)];
+        // document.getElementById('#content_'+i).style.backgroundColor = random_color;
+        // $('#content_'+i).css('background-color', random_color);
+
+        var content = '#content_' + i;
+        $('content').attr('style', 'background-color:'+random_color);
+        // $(content).attr('style', $(content).attr('style').split('#207ce5').join(random_color);
+      }
+      */
+    });
+
+  </script>
+
+</head>
+
+<body>
+
+  <div class="container-fluid p-0 m-0">
+    <!-- header -->
+    <div class="row d-flex justify-content-center py-3 m-0 border-bottom">
+      <!-- home -->
+      <div class="col-1 d-flex justify-content-center align-items-center p-0">
+        <a class="btn p-0" href="/mainpage.go">
+          <i class="fas fa-home fa-lg" style="color: black;"></i>
+        </a>
+      </div>
+
+      <!-- search -->
+      <div class="col-3 p-0">
+        <div class="form-group d-flex align-items-center m-0">
+          <span class="input-group-addon fas fa-search fa-sm"
+            style="color:grey; position: relative; left:15px; z-index:1;">
+          </span>
+          <input type="search" class="form-control" id="search-input" placeholder="검색" aria-label="Search"
+            spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"
+            aria-owns="algolia-autocomplete-listbox-0" dir="auto"
+            style="position: relative; right:7px; padding:3px 10px 3px 26px;">
+        </div>
+      </div>
+
+      <!-- user -->
+      <div class="col-1 d-flex justify-content-center align-items-center p-0" id = "usericon">
+        <a class="btn p-0" href="#" data-toggle="modal" data-target="#signinModal">
+          <i class="fas fa-user-alt fa-lg"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="container-fluid h-100 p-0 m-0 bg-light">
+    <!-- menu -->
+    <div class="row d-flex justify-content-center py-3 m-0">
+      <div class="col-sm-6">
+        <ul class="nav nav-justified">
+          <li class="nav-item"><a href="/" class="text-black-50">지도 검색</a></li>
+          <li class="nav-item"><a href="/mymap.go" class="text-black-50">나만의 지도</a></li>
+          <li class="nav-item"><a href="/myfollowmap.go" class="text-black-50">팔로우</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="container-fluid h-100 p-0 m-0 bg-light">
+    <!-- map search -->
+    <div class="row d-flex justify-content-center">
+      <div class="col-lg-10 mx-4">
+
+        <!-- contents -->
+        <div class="row" ng-app="myApp" ng-controller="myCtrl">
+          <div class="col-sm-4 p-2" ng-repeat="map in maplist">
+            <div class="d-flex justify-content-center align-items-center" id="content_{{$index}}"
+              style="background-color: #207ce5; width: 100%; height: 200px;">
+              <!-- background-color: #207ce5; -->
+              <a href="#" class="text-white">
+                {{$index}} {{map.name}}님의 {{map.center}} {{map.content}}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  </div>
+
+
+  <!-- modal -->
+  <div class="modal fade" id="signinModal" tabindex="-1" role="dialog" aria-labelledby="signinModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <!-- modal header -->
+        <div class="modal-header border-bottom-0 pb-0">
+          <div class="container-fluid">
+            <div class="row d-flex justify-content-center">
+              <h5 class="modal-title" id="signinModalLabel">우리 동네 지도</h5>
+            </div>
+            <div class="row d-flex justify-content-center">
+              로그인
+            </div>
+          </div>
+          <!-- close button -->
+          <!-- <button type="button" class="close pl-0" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button> -->
+        </div>
+
+        <!-- modal body -->
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="sr-only" for="form-username">id</label>
+            <input type="text" name="form-username" placeholder="아이디" class="form-control bg-light border-0"
+              id="form-id">
+          </div>
+          <div class="form-group m-0">
+            <label class="sr-only" for="form-password">pw</label>
+            <input type="password" name="form-password" placeholder="패스워드" class="form-control bg-light border-0"
+              id="form-pw">
+          </div>
+        </div>
+
+        <!-- modal footer -->
+        <div class="modal-footer border-top-0 pt-0">
+          <div class="container-fluid">
+            <div class="row d-flex justify-content-center pb-3">
+              <button type="button" id = "loginbutton" class="btn btn-secondary btn-block" data-dismiss="modal">로그인</button>
+            </div>
+            <div class="row d-flex justify-content-center">
+              <a href="#">비밀번호를 잊어버리셨나요?</a><br>
+            </div>
+            <div class="row d-flex justify-content-center">
+              계정이 없으신가요?&nbsp;<a href="/signup.go">회원가입</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+  $("#loginbutton").click(function(){
+    $.ajax({
+      url : "/login.do?id=" + $("#form-id").val() + "&pw=" + $("#form-pw").val(),
+      type: 'GET',
+      success: function(result) {
+        if (result) {
+          alert(result.id)
+        }else{
+          alert("??")
+        }
+
+      }
+     
+    });
+  });
+  </script>
+
+  <!-- footer -->
+  <footer>
+    <div class="container-fluid bg-light">
+      <div class="row d-flex justify-content-center py-2 m-0">
+        <p>&copy; 2019 UDG</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+
+</html>

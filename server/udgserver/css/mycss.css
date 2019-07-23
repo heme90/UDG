@@ -1,0 +1,28 @@
+#search-input::-webkit-input-placeholder {
+    text-align:center;
+}
+
+.modal {
+  text-align: center;
+}
+
+.modal-dialog {
+  display: inline-block;
+  text-align: left;
+  vertical-align: middle; 
+  width: 90%;
+}
+
+@media screen and (min-width: 768px) { 
+  .modal:before {
+    display: inline-block;
+    vertical-align: middle;
+    content: " ";
+    height: 100%;
+  }
+
+  .modal-dialog:before {
+    width: 40%;
+  }
+}
+
