@@ -55,7 +55,7 @@
       "share":1}
     ]
     
-    alert(follow[0]['c_id'])
+    //alert(follow[0]['c_id'])
     var map;
     function initMap(idx) {
       if(!idx){
@@ -123,9 +123,9 @@ async defer></script>
     <!-- header -->
     <div class="row d-flex justify-content-center py-3 m-0 border-bottom">
       <!-- home -->
-      <div class="col-1 d-flex justify-content-center align-items-center p-0">
+      <div class="col-1 d-flex justify-content-end align-items-center">
         <a class="btn p-0" href="/mainpage.go">
-          <i class="fas fa-home fa-lg" style="color: black;"></i>
+          <i class="fas fa-home fa-lg" style="color: #555;"></i>
         </a>
       </div>
 
@@ -143,9 +143,9 @@ async defer></script>
       </div>
 
       <!-- user -->
-      <div class="col-1 d-flex justify-content-center align-items-center p-0">
+      <div class="col-1 d-flex justify-content-start align-items-center">
         <a class="btn p-0" href="#" data-toggle="modal" data-target="#signinModal">
-          <i class="fas fa-user-alt fa-lg"></i>
+          <i class="fas fa-user-alt fa-lg" style="color: #555;"></i>
         </a>
       </div>
     </div>
@@ -157,7 +157,7 @@ async defer></script>
     <div class="row d-flex justify-content-center py-3 m-0">
       <div class="col-sm-6">
         <ul class="nav nav-justified">
-          <li class="nav-item"><a href="/" class="text-black-50">지도 검색</a></li>
+          <li class="nav-item"><a href="/" class="text-black-50">전체 지도</a></li>
           <li class="nav-item"><a href="/mymap.go" class="text-black-50">나만의 지도</a></li>
           <li class="nav-item"><a href="/myfollowmap.go" class="text-black-50">팔로우</a></li>
         </ul>

@@ -76,32 +76,32 @@
     <div class="container-fluid p-0 m-0">
         <!-- header -->
         <div class="row d-flex justify-content-center py-3 m-0 border-bottom">
-            <!-- home -->
-            <div class="col-1 d-flex justify-content-center align-items-center p-0">
+          <!-- home -->
+          <div class="col-1 d-flex justify-content-end align-items-center">
             <a class="btn p-0" href="/mainpage.go">
-                <i class="fas fa-home fa-lg" style="color: black;"></i>
+              <i class="fas fa-home fa-lg" style="color: #555;"></i>
             </a>
-            </div>
-
-            <!-- search -->
-            <div class="col-3 p-0">
+          </div>
+    
+          <!-- search -->
+          <div class="col-3 p-0">
             <div class="form-group d-flex align-items-center m-0">
-                <span class="input-group-addon fas fa-search fa-sm"
+              <span class="input-group-addon fas fa-search fa-sm"
                 style="color:grey; position: relative; left:15px; z-index:1;">
-                </span>
-                <input type="search" class="form-control" id="search-input" placeholder="검색" aria-label="Search"
+              </span>
+              <input type="search" class="form-control" id="search-input" placeholder="검색" aria-label="Search"
                 spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"
                 aria-owns="algolia-autocomplete-listbox-0" dir="auto"
                 style="position: relative; right:7px; padding:3px 10px 3px 26px;">
             </div>
-            </div>
-
-            <!-- user -->
-            <div class="col-1 d-flex justify-content-center align-items-center p-0">
+          </div>
+    
+          <!-- user -->
+          <div class="col-1 d-flex justify-content-start align-items-center">
             <a class="btn p-0" href="#" data-toggle="modal" data-target="#signinModal">
-                <i class="fas fa-user-alt fa-lg"></i>
+              <i class="fas fa-user-alt fa-lg" style="color: #555;"></i>
             </a>
-            </div>
+          </div>
         </div>
     </div>
 
@@ -111,7 +111,7 @@
         <div class="row d-flex justify-content-center py-3 m-0">
             <div class="col-sm-6">
                 <ul class="nav nav-justified">
-                    <li class="nav-item"><a href="/" class="text-black-50">지도 검색</a></li>
+                    <li class="nav-item"><a href="/" class="text-black-50">전체 지도</a></li>
                     <li class="nav-item"><a href="/mymap.go" class="text-black-50">나만의 지도</a></li>
                     <li class="nav-item"><a href="/myfollowmap.go" class="text-black-50">팔로우</a></li>
                 </ul>
@@ -121,15 +121,14 @@
 
 
     <div class="container-fluid h-100 p-0 m-0 bg-light">
-        <!-- sign up -->
-        <div class="row-fluid d-flex justify-content-center">
-            <div ng-app="myApp" ng-controller="myCtrl">
-
-                <p class="text-center">회원가입</p>
-
+        <!-- test -->
+        <div class="row d-flex justify-content-center m-0">
+            <div class="col-lg-10 mx-4">
+                <div class="row d-flex justify-content-center">
+                회원가입
+                </div>
                 <div class="row d-flex justify-content-center">
                     <div class="col-6">
-
                         <form class="form-group" ng-submit="addUser()">
                             <input type="text" class="form-control mb-2" placeholder="아이디" ng-model="userForm.id">
                             <input type="text" class="form-control mb-2" placeholder="비밀번호" ng-model="userForm.pw">
@@ -141,35 +140,38 @@
                     </div>
                 </div>
 
-                <hr>
-                <p class="text-center">회원목록</p>
-                <table class="table table-striped table-dark">
-                    <thead>
-                        <tr>
-                            <th>No.</th>
-                            <th>id</th>
-                            <th>name</th>
-                            <th>pw</th>
-                            <th>region</th>
-                            <th>email</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr ng-repeat="item in userList">
-                            <td>{{$index+1}}</td>
-                            <td>{{item.id}}</td>
-                            <td>{{item.pw}}</td>
-                            <td>{{item.name}}</td>
-                            <td>{{item.region}}</td>
-                            <td>{{item.email}}</td>
-                            <td><button type="button" class="btn btn-secondary"
-                                    ng-click="remove(item.id)">Delete</button></td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
         </div>
+    </div>
+
+    <div ng-app="myApp" ng-controller="myCtrl">
+        <hr>
+        <p class="text-center">회원목록</p>
+        <table class="table table-striped table-dark">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>id</th>
+                    <th>name</th>
+                    <th>pw</th>
+                    <th>region</th>
+                    <th>email</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="item in userList">
+                    <td>{{$index+1}}</td>
+                    <td>{{item.id}}</td>
+                    <td>{{item.pw}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.region}}</td>
+                    <td>{{item.email}}</td>
+                    <td><button type="button" class="btn btn-secondary"
+                            ng-click="remove(item.id)">Delete</button></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
     <!-- modal -->
@@ -189,8 +191,8 @@
                     </div>
                     <!-- close button -->
                     <!-- <button type="button" class="close pl-0" data-dismiss="modal" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-        </button> -->
+                    <span aria-hidden="true">&times;</span>
+                    </button> -->
                 </div>
 
                 <!-- modal body -->
