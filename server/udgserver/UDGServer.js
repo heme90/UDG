@@ -226,6 +226,7 @@ const signin = function(db,id,pw,callback) {
 var server = http.createServer(function (req, res) {   //create web server
     var _url = req.url;
     var query = url.parse(_url, true).query;
+    let date;
     process.setMaxListeners(20);
 
     if (_url == '/') { //check the URL of the current request
@@ -298,27 +299,25 @@ var server = http.createServer(function (req, res) {   //create web server
 
     }
     else if (_url.startsWith("/login.do")) {
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         console.log(query.id,query.pw)
         signin(db,query.id,query.pw,function(err,user){
             if(err){
                 console.log("f")
             }
             console.log(user[0]);
-            session={
-                        cookieName: 'mySession',
-                        secret: user[0].id,
-                        duration: 24 * 60 * 60 * 1000, 
-                        activeDuration: 1000 * 60 * 5,
-                        id : user[0].id,
-                        pw : user[0].pw,
-                        email : user[0].email
-                    }
-
-            console.log(session.id)
+            //response.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);
+            // res.setHeader('Set-Cookie', ['id='+user[0].id
+            //                             ,'pw='+user[0].pw
+            //                             , 'email='+user[0].email]);
+            date = new Date(Date.now() + 24*60*60*1000);
+            date = date.toUTCString();
+            //쿠키가 하루동안 지속되도록 함 
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8',
+                                 'Set-Cookie' : ['id='+user[0].id+';Expires='+date
+                                 ,'pw='+user[0].pw+';Expires='+date
+                                 , 'email='+user[0].email+';Expires='+date] });
             res.end(user[0] + "");
         });
-
     }
     else if (_url.startsWith("/makemap.do")) {
 

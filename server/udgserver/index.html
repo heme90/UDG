@@ -189,7 +189,7 @@
       type: 'GET',
       success: function(result) {
         if (result) {
-          alert(result.id)
+          ReadCookie();
         }else{
           alert("??")
         }
@@ -198,6 +198,10 @@
      
     });
   });
+  function ReadCookie() {
+      var allcookies = document.cookie;
+      alert("모든쿠키값 : " + allcookies);
+  }
   </script>
 
   <!-- footer -->
