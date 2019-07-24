@@ -61,35 +61,42 @@ const signin = function(db,id,pw,callback) {
     //get user collection
     var collection = db.collection('user');
     //insert new userinfo
-    collection.insertOne({id:id, pw:pw, email:email}).then(function(err,result){
-      //assert.equal(err,null);
-      //assert.equal(1,results.result.n);
-      //assert.equal(1,results.ops.length);
-      console.log('Inserted the new user')
-      callback(result);
+    collection.insertOne({id:id, pw:pw, email:email}, function(err,result){
+        if(err){
+            console.error("에러",err);
+        } else {
+            console.log('Inserted the new user')
+        }
     });
   }
-  
+
   //3. makemap.do : 
   //3-1 :make a new map in udgmap collection
-  const addmap_udg = function(db,id,dname,x,y,o, callback){
+  const addmap_udg = function(db,id,dname,x,y, callback){
     //get udgmap collection
     var collection = db.collection('udgmap');
     //insert a new map
-    collection.insertOne({id:id, dname:dname, dcenter:[x,y], onlyme:o, cnt_follow:0, markers:[]}, function(err,result){
-      console.log('inserted mymap in udgmap');
-      callback(result);
+    //경도, 위도 순으로 저장하도록 변경, 새로 저장시 '나만보기'를 기본값으로 
+    collection.insertOne({id:id, dname:dname, dcenter:[y,x], onlyme:1, cnt_follow:0, markers:[]}, function(err,result){
+        if(err){
+            console.error("에러",err);
+        } else {
+            console.log('inserted mymap in udgmap');
+        }
     });
   }
-  //3-2: add a map in user document in user collection
-  const addmap_user = function(db,id,dname,x,y, callback){
+ //3-2: add a map in user document in user collection
+ const addmap_user = function(db,id,dname,x,y, callback){
     //get user collection
     var collection = db.collection('user');
     //add a new map
     collection.updateOne({id:id}
-      ,{ $set: {'mymap.creator': id, 'mymap.dname': dname, 'mymap.dcenter': [x,y] } }, function(err,result){
-      console.log('added a map in user mymap');
-      callback(result);
+      ,{ $push: {mymap: {creator: id, dname: dname, dcenter: [y,x] }}}, function(err,result){
+        if(err){
+          console.error("에러",err); 
+        } else {
+          console.log('added a map in user mymap');
+        }
     });
   }
   
@@ -106,12 +113,15 @@ const signin = function(db,id,pw,callback) {
         ,{ $push: {markers: {title: items.title
         , lat:items.lat, lng:items.lng
         , desc : {content:items.desc.con}}}}, function(err,result){
-        assert.equal(1, result.result.n);
-        console.log('added a marker in the map');
+        if(err){
+            console.error(err);
+        } else {
+            console.log('added a marker in the map');
+        }
       });
     });
   }
-  
+
   /*
   var markers ={"c_id" : "aa", "center":{lat: 37.484780, lng: 127.016129} 
           , "mapname" : "안녕" 
@@ -125,10 +135,12 @@ const signin = function(db,id,pw,callback) {
     //get user collection
     var collection = db.collection('udgmap');
     //set the map shared
-    collection.updateOne({id:id, dname: dname, dcenter:[x,y]}, {$set: {onlyme:0}}, function(err, result){
-      assert.equal(1,result.result.n);
-      console.log('the map is shared now');
-      callback(result);
+    collection.updateOne({id:id, dname: dname, dcenter:[y,x]}, {$set: {onlyme:0}}, function(err, result){
+        if(err){
+          console.error(err);
+        } else {
+          console.log('the map is shared now');
+        }
     });
   }
   
@@ -141,8 +153,12 @@ const signin = function(db,id,pw,callback) {
     var collection = db.collection('user');
     //update user document
     collection.updateOne({id:id}
-      ,{$set:{'follow.creator':c_id, 'follow.dname':dname, 'follow.dcenter':[x,y]}}, function(err,result){
-      console.log('added a map in user followmap');
+      ,{$push: {followmap: {creator:c_id, dname:dname, dcenter:[y,x]}}}, function(err,result){
+        if(err){
+            console.error(err);
+        } else {
+            console.log('added a map in user followmap');
+        }
     });
   }
   
@@ -151,24 +167,42 @@ const signin = function(db,id,pw,callback) {
     //get udgmap collection
     var collection = db.collection('udgmap');
     //cnt_follow +1
-    collection.updateOne({id:id, dname: dname, dcenter:[x,y]},{$inc:{cnt_follow:1}}, function(err,result){
-      console.log('increased cnt_follow by 1');
+    collection.updateOne({id:id, dname: dname, dcenter:[y,x]},{$inc:{cnt_follow:1}}, function(err,result){
+        if(err){
+            console.error(err);
+        } else {
+            console.log('increased cnt_follow by 1');
+        }
     });
   }
   
   
   //7. searchmap.do : find shared maps of certain location, sorted by cnt_follow
-  const searchmaps = function(db,x,y, callback) {
+  const searchmaps = function (db, x, y, callback) {
     // get udgmap collection 
     var collection = db.collection('udgmap');
     // find shared maps at the point of [x,y]
-    collection.find({$and :[{dcenter:[x,y]},{onlyme: 0}]}).sort({cnt_follow: -1}).toArray(function(err, foundmaps) {
-        assert.equal(err, null);
-        console.log("found maps :");
-        //console.log(foundmaps); // markers: [ [Object], [Object] ]
-        console.log(util.inspect(foundmaps,{depth:5}));
-        // return the result
-        callback(foundmaps); 
+    collection.createIndex({dcenter:"2dsphere"}, function(err, result){
+      if (err){
+        console.error(err);
+        //
+      } else {
+        console.log("성공");
+        collection.find({ $and: [{ dcenter: {$near : {
+          $geometry: {type:'Point', coordinates: [y,x]}, //위도, 경도 순으로 들어온 좌표를 경도, 위도순으로 find
+          $maxDistance: 300}}}, //해당 좌표에서 300미터 이내에 있는 지점 찾기
+          { onlyme: 0 }] }) // 공개된 지도만 찾아온다
+          .sort({ cnt_follow: -1 })//팔로우 수가 많은 순서대로
+          .toArray(function (err, foundmaps) {
+            if(err){
+              console.error(err)
+            } else {
+              console.log("found maps: ")
+              console.log(util.inspect(foundmaps, {depth: 5}));
+              return callback(null, foundmaps);
+            }
+      });
+      }
     });
   }
   
@@ -178,13 +212,14 @@ const signin = function(db,id,pw,callback) {
     var collection = db.collection('udgmap');
     // find maps whose 'onlyme' field is 0
     collection.find({onlyme: 0}).toArray(function(err, allmaps) {
-        assert.equal(err, null);
-        console.log("all maps :");
-        //console.log(allmaps);
-        //console.log('%j', allmaps);
-        console.log(util.inspect(allmaps,{depth:5}));
-        // return the result
-        callback(allmaps); 
+        if (err){
+            console.error(err);
+          } else {
+            console.log("allmaps :");
+            console.log(util.inspect(allmaps,{depth:5}));
+            // return the result
+            return callback(allmaps);
+          }
     });
   }
   
@@ -194,12 +229,14 @@ const signin = function(db,id,pw,callback) {
     var collection = db.collection('udgmap');
     // find my maps by id
     collection.find({id: id},{mymap:1}).toArray(function(err, mymaps) {
-        assert.equal(err, null);
-        console.log("mymaps :");
-        //console.log(mymaps);
-        console.log(util.inspect(mymaps,{depth:5}));
-        // return the result
-        callback(mymaps); 
+        if (err){
+            console.error(err);
+          } else {
+            console.log("mymaps :");
+            console.log(util.inspect(mymaps,{depth:5}));
+            // return the result
+            return callback(mymaps);
+          }
     });
   }
   
@@ -211,12 +248,14 @@ const signin = function(db,id,pw,callback) {
     // find following maps by id
     var ft = { followmap: 1}
     collection.find({id: id}, {projection:ft}).toArray(function(err, followmaps) {
-        assert.equal(err, null);
-        console.log("followmaps :");
-        //console.log(followmaps);
-        console.log(util.inspect(followmaps,{depth:5}));
-        // return the result
-        callback(followmaps); 
+        if (err){
+          console.error(err);
+        } else {
+          console.log("followmaps :");
+          console.log(util.inspect(followmaps,{depth:5}));
+          // return the result
+          return callback(followmaps);
+        }
     });
   }
 
