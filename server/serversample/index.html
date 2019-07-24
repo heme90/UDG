@@ -27,6 +27,8 @@
   <!-- css -->
   <link rel="stylesheet" type="text/css" href="css/mycss.css">
 
+  
+
   <script>
     var app = angular.module("myApp", []);
     app.controller("myCtrl", function ($scope) {
@@ -341,7 +343,7 @@
         <div class="modal-footer border-top-0 pt-0">
           <div class="container-fluid">
             <div class="row d-flex justify-content-center pb-3">
-              <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">로그인</button>
+              <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal" id = "loginbutton">로그인</button>
             </div>
             <div class="row d-flex justify-content-center">
               <a href="#">비밀번호를 잊어버리셨나요?</a><br>
@@ -364,7 +366,27 @@
       </div>
     </div>
   </footer>
-
+  <script>
+      $("#loginbutton").click(function(){
+        $.ajax({
+          url : "/login.do?id=" + $("#form-id").val() + "&pw=" + $("#form-pw").val(),
+          type: 'GET',
+          success: function(result) {
+            if (result) {
+              ReadCookie();
+            }else{
+              alert("??")
+            }
+    
+          }
+         
+        });
+      });
+      function ReadCookie() {
+          var allcookies = document.cookie;
+          alert("모든쿠키값 : " + allcookies);
+      }
+      </script>
 </body>
 
 </html>
