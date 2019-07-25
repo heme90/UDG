@@ -25,7 +25,9 @@
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css">
 
   <!-- css -->
-  <link href="css/mycss.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="css/mycss.css">
+
+  
 
   <script>
     var app = angular.module("myApp", []);
@@ -55,6 +57,161 @@
 
   </script>
 
+  <style>
+    
+#search-input::-webkit-input-placeholder {
+    text-align:center;
+}
+
+.thumb-wrapper {
+	width: 100%;
+  height: 0;
+	position: relative;
+  float: left;
+  padding-bottom: 100%;
+}
+
+.thumb-wrapper::before {
+	display: block;
+	content: "";
+	height: 100%;
+	padding-top: 100%;
+}
+
+.thumb-container {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	padding: 0px 0px 0px 0px;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box
+}
+
+.thumb-content {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	cursor: pointer;
+  overflow: hidden;
+  background: linear-gradient(-45deg, #5e2aff, #207ce5);
+}
+
+.thumb-content:hover .thumb-img {
+	-moz-transform: translate(-50%, -50%) scale(1.1, 1.1);
+	-ms-transform: translate(-50%, -50%) scale(1.1, 1.1);
+	-webkit-transform: translate(-50%, -50%) scale(1.1, 1.1);
+	transform: translate(-50%, -50%) scale(1.1, 1.1);
+}
+
+.thumb-content:hover .thumb-img-overlay {
+	background-color: rgba(0, 0, 0, 0.7);
+}
+
+.thumb-box-content {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.thumb-photo {
+	overflow: hidden;
+}
+
+.thumb-img {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	min-width: 100.5%;
+	min-height: 100.5%;
+	height: 100%;
+	width: auto;
+	-moz-transform: translate(-50%, -50%);
+	-ms-transform: translate(-50%, -50%);
+	-webkit-transform: translate(-50%, -50%);
+	transform: translate(-50%, -50%);
+	-moz-transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+	-o-transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+	-webkit-transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+	transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.thumb-img-landscape {
+	width: 101.467%;
+	height: auto;
+}
+
+.thumb-img-overlay {
+	background-color: rgba(0, 0, 0, 0.4);
+	-moz-transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	-o-transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	-webkit-transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+}
+
+.thumb-infos {
+  font-size: 12pt;
+	top: 50%;
+	height: auto;
+	padding: 0 15px;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+	color: #fff;
+	text-align: center;
+	-moz-transform: translateY(-50%);
+	-ms-transform: translateY(-50%);
+	-webkit-transform: translateY(-50%);
+	transform: translateY(-50%);
+}
+
+.modal {
+  text-align: center;
+}
+
+.modal-dialog {
+  display: inline-block;
+  text-align: left;
+  vertical-align: middle; 
+  width: 90%;
+}
+
+@media screen and (min-width: 768px) { 
+  .thumb-wrapper {
+    padding-bottom: 100%;
+  }
+
+  .thumb-infos {
+    font-size: 16pt;
+  }
+
+  .modal:before {
+    display: inline-block;
+    vertical-align: middle;
+    content: " ";
+    height: 100%;
+  }
+
+  .modal-dialog:before {
+    width: 40%;
+  }
+}
+
+@media screen and (max-width: 574px) {
+  .thumb-wrapper {
+    padding-bottom: 70%;
+  }
+
+  .thumb-infos {
+    font-size: 20pt;
+  }
+}
+
+  </style>
 </head>
 
 <body>
@@ -63,9 +220,9 @@
     <!-- header -->
     <div class="row d-flex justify-content-center py-3 m-0 border-bottom">
       <!-- home -->
-      <div class="col-1 d-flex justify-content-center align-items-center p-0">
+      <div class="col-1 d-flex justify-content-end align-items-center">
         <a class="btn p-0" href="/mainpage.go">
-          <i class="fas fa-home fa-lg" style="color: black;"></i>
+          <i class="fas fa-home fa-lg" style="color: #555;"></i>
         </a>
       </div>
 
@@ -83,9 +240,9 @@
       </div>
 
       <!-- user -->
-      <div class="col-1 d-flex justify-content-center align-items-center p-0" id = "usericon">
+      <div class="col-1 d-flex justify-content-start align-items-center">
         <a class="btn p-0" href="#" data-toggle="modal" data-target="#signinModal">
-          <i class="fas fa-user-alt fa-lg"></i>
+          <i class="fas fa-user-alt fa-lg" style="color: #555;"></i>
         </a>
       </div>
     </div>
@@ -97,7 +254,7 @@
     <div class="row d-flex justify-content-center py-3 m-0">
       <div class="col-sm-6">
         <ul class="nav nav-justified">
-          <li class="nav-item"><a href="/" class="text-black-50">지도 검색</a></li>
+          <li class="nav-item"><a href="/" class="text-black-50">전체 지도</a></li>
           <li class="nav-item"><a href="/mymap.go" class="text-black-50">나만의 지도</a></li>
           <li class="nav-item"><a href="/myfollowmap.go" class="text-black-50">팔로우</a></li>
         </ul>
@@ -108,19 +265,36 @@
 
   <div class="container-fluid h-100 p-0 m-0 bg-light">
     <!-- map search -->
-    <div class="row d-flex justify-content-center">
+    <div class="row-fluid d-flex justify-content-center">
       <div class="col-lg-10 mx-4">
 
         <!-- contents -->
         <div class="row" ng-app="myApp" ng-controller="myCtrl">
           <div class="col-sm-4 p-2" ng-repeat="map in maplist">
-            <div class="d-flex justify-content-center align-items-center" id="content_{{$index}}"
-              style="background-color: #207ce5; width: 100%; height: 200px;">
-              <!-- background-color: #207ce5; -->
+          
+
+            <div class="thumb-wrapper">
+              <div class="thumb-container">
+                <div class="thumb-content">
+                  <div class="thumb-photo thumb-box-content">
+                      <img src="https://scontent-icn1-1.cdninstagram.com/vp/bf095ae7e12f3d98ae26af50037f5bec/5DBA8C74/t51.2885-15/e35/57564811_146986786352360_4166844949660890059_n.jpg?_nc_ht=scontent-icn1-1.cdninstagram.com"
+                      style="width: 100%; height: 100%;">
+                  </div>
+                  <div class="thumb-img-overlay thumb-box-content"></div>
+                  <div class="thumb-infos thumb-box-content">
+                    {{$index}} {{map.name}}님의<br>{{map.center}} {{map.content}}
+                  </div>
+                </div>
+              </div>
+            </div>
+          
+            <!-- <div class="d-flex justify-content-center align-items-center" id="content_{{$index}}"
+              style="width: 100%; height: 200px; background: linear-gradient(-45deg, #5e2aff, #207ce5);">
               <a href="#" class="text-white">
                 {{$index}} {{map.name}}님의 {{map.center}} {{map.content}}
               </a>
-            </div>
+            </div> -->
+
           </div>
         </div>
       </div>
@@ -169,7 +343,7 @@
         <div class="modal-footer border-top-0 pt-0">
           <div class="container-fluid">
             <div class="row d-flex justify-content-center pb-3">
-              <button type="button" id = "loginbutton" class="btn btn-secondary btn-block" data-dismiss="modal">로그인</button>
+              <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal" id = "loginbutton">로그인</button>
             </div>
             <div class="row d-flex justify-content-center">
               <a href="#">비밀번호를 잊어버리셨나요?</a><br>
@@ -182,27 +356,7 @@
       </div>
     </div>
   </div>
-  <script>
-  $("#loginbutton").click(function(){
-    $.ajax({
-      url : "/login.do?id=" + $("#form-id").val() + "&pw=" + $("#form-pw").val(),
-      type: 'GET',
-      success: function(result) {
-        if (result) {
-          ReadCookie();
-        }else{
-          alert("??")
-        }
 
-      }
-     
-    });
-  });
-  function ReadCookie() {
-      var allcookies = document.cookie;
-      alert("모든쿠키값 : " + allcookies);
-  }
-  </script>
 
   <!-- footer -->
   <footer>
@@ -212,7 +366,27 @@
       </div>
     </div>
   </footer>
-
+  <script>
+      $("#loginbutton").click(function(){
+        $.ajax({
+          url : "/login.do?id=" + $("#form-id").val() + "&pw=" + $("#form-pw").val(),
+          type: 'GET',
+          success: function(result) {
+            if (result) {
+              ReadCookie();
+            }else{
+              alert("??")
+            }
+    
+          }
+         
+        });
+      });
+      function ReadCookie() {
+          var allcookies = document.cookie;
+          alert("모든쿠키값 : " + allcookies);
+      }
+      </script>
 </body>
 
 </html>
