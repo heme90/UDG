@@ -338,26 +338,28 @@ var server = http.createServer(function (req, res) {   //create web server
 
     }
     else if (_url.startsWith("/login.do")) {
-        console.log(query.id,query.pw)
-        signin(db,query.id,query.pw,function(err,user){
-            if(err){
-                console.log("f")
-            }
-            console.log(user[0]);
-            //response.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);
-            // res.setHeader('Set-Cookie', ['id='+user[0].id
-            //                             ,'pw='+user[0].pw
-            //                             , 'email='+user[0].email]);
-            date = new Date(Date.now() + 24*60*60*1000);
-            date = date.toUTCString();
-            //쿠키가 하루동안 지속되도록 함 
-            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8',
-                                 'Set-Cookie' : ['id='+user[0].id+';Expires='+date
-                                 ,'pw='+user[0].pw+';Expires='+date
-                                 , 'email='+user[0].email+';Expires='+date] });
-            res.end(user[0] + "");
-        });
-    }
+      console.log(query.id,query.pw)
+      signin(db,query.id,query.pw,function(err,user){
+          if(err){
+              console.log("f")
+          }
+          console.log(user[0]);
+          //response.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);
+          // res.setHeader('Set-Cookie', ['id='+user[0].id
+          //                             ,'pw='+user[0].pw
+          //                             , 'email='+user[0].email]);
+          date = new Date(Date.now() + 24*60*60*1000);
+          date = date.toUTCString();
+          //쿠키가 하루동안 지속되도록 함 
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8',
+                               'Set-Cookie' : ['id='+user[0].id+';Expires='+date
+                               ,'pw='+user[0].pw+';Expires='+date
+                               , 'email='+user[0].email+';Expires='+date] });
+          res.end(JSON.stringify(user[0]));
+          
+         
+      });
+  }
     else if (_url.startsWith("/makemap.do")) {
 
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -386,21 +388,20 @@ var server = http.createServer(function (req, res) {   //create web server
         res.end();
 
     }
+
+    //지도 검색
     else if (_url.startsWith("/searchmap.do")) {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       console.log(query.lat, query.lng)
       var x = Number(query.lat);
       var y = Number(query.lng);
-      searchmaps(db, x, y, function(err, data){
+      searchmaps(db, x, y, function(err, searchedMap){
           if(err){
               console.log("error")
           }
-          var searchedMap = data;
           console.log(searchedMap);
+          res.end(JSON.stringify(searchedMap), 'utf-8');
       })
-      res.write('<html><h1>지도 검색 스크립트</h1><br/></html>', 'utf-8');
-      res.end();
-
     }
 
     // 전체 회원

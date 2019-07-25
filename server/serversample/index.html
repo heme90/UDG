@@ -368,13 +368,14 @@
     </div>
   </footer>
   <script>
-      $("#loginbutton").click(function(){
+    $("#loginbutton").click(function(){
         $.ajax({
           url : "/login.do?id=" + $("#form-id").val() + "&pw=" + $("#form-pw").val(),
           type: 'GET',
           success: function(result) {
             if (result) {
               ReadCookie();
+              console.log(JSON.parse(result))
             }else{
               alert("??")
             }
@@ -398,10 +399,9 @@
             $.ajax({
               url: "/searchmap.do?lat="+lat+"&lng="+lng,
               type: "GET",
-              success: function(result){
-                if (result) {
-                  alert("검색성공");
-                }
+              success: function(res){
+                var searchedMap = JSON.parse(res);
+                alert(searchedMap[0].id);
               }
             });
           }
