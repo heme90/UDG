@@ -387,10 +387,19 @@ var server = http.createServer(function (req, res) {   //create web server
 
     }
     else if (_url.startsWith("/searchmap.do")) {
-
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.write('<html><h1>지도 검색 스크립트</h1><br/></html>', 'utf-8');
-        res.end();
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      console.log(query.lat, query.lng)
+      var x = Number(query.lat);
+      var y = Number(query.lng);
+      searchmaps(db, x, y, function(err, data){
+          if(err){
+              console.log("error")
+          }
+          var searchedMap = data;
+          console.log(searchedMap);
+      })
+      res.write('<html><h1>지도 검색 스크립트</h1><br/></html>', 'utf-8');
+      res.end();
 
     }
 
