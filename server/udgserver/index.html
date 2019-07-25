@@ -232,10 +232,11 @@
           <span class="input-group-addon fas fa-search fa-sm"
             style="color:grey; position: relative; left:15px; z-index:1;">
           </span>
-          <input type="search" class="form-control" id="search-input" placeholder="검색" aria-label="Search"
-            spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"
-            aria-owns="algolia-autocomplete-listbox-0" dir="auto"
-            style="position: relative; right:7px; padding:3px 10px 3px 26px;">
+            <input type="text" class="form-control" id="search-input" placeholder="검색" aria-label="Search"
+              spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"
+              aria-owns="algolia-autocomplete-listbox-0" dir="auto" value=""
+              style="position: relative; right:7px; padding:3px 10px 3px 26px;">
+            <input type="button" id="btn-submit">
         </div>
       </div>
 
@@ -374,6 +375,7 @@
           success: function(result) {
             if (result) {
               ReadCookie();
+              console.log(JSON.parse(result))
             }else{
               alert("??")
             }
@@ -386,6 +388,26 @@
           var allcookies = document.cookie;
           alert("모든쿠키값 : " + allcookies);
       }
+
+      $("#btn-submit").click(function(){
+        $.ajax({
+          url: "https://maps.googleapis.com/maps/api/geocode/xml?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&address="+$("#search-input").val(),
+          success: function(data) {
+            var location = data.getElementsByTagName("location")[0];
+            var lat = location.getElementsByTagName("lat")[0].textContent;
+            var lng = location.getElementsByTagName("lng")[0].textContent;
+            $.ajax({
+              url: "/searchmap.do?lat="+lat+"&lng="+lng,
+              type: "GET",
+              success: function(result){
+                if (result) {
+                  alert("검색성공");
+                }
+              }
+            });
+          }
+        }); 
+      }) 
       </script>
 </body>
 
