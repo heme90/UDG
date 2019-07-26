@@ -168,17 +168,31 @@ const signup = function(db, id, pw, email, callback){
   
   
   //7. searchmap.do : find shared maps of certain location, sorted by cnt_follow
-  const searchmaps = function(db,x,y, callback) {
+  const searchmaps = function (db, x, y, callback) {
     // get udgmap collection 
     var collection = db.collection('udgmap');
     // find shared maps at the point of [x,y]
-    collection.find({$and :[{dcenter:[x,y]},{onlyme: 0}]}).sort({cnt_follow: -1}).toArray(function(err, foundmaps) {
-        assert.equal(err, null);
-        console.log("found maps :");
-        //console.log(foundmaps); // markers: [ [Object], [Object] ]
-        console.log(util.inspect(foundmaps,{depth:5}));
-        // return the result
-        callback(foundmaps); 
+    collection.createIndex({center:"2dsphere"}, function(err, result){
+      if (err){
+        console.error(err);
+        //
+      } else {
+        console.log("성공");
+        collection.find({ $and: [{ center: {$near : {
+          $geometry: {type:'Point', coordinates: [y,x]}, //위도, 경도 순으로 들어온 좌표를 경도, 위도순으로 find
+          $maxDistance: 7000}}}, //해당 좌표에서 300미터 이내에 있는 지점 찾기
+          { visibility: true }] }) // 공개된 지도만 찾아온다
+          .sort({ cnt_follow: -1 })//팔로우 수가 많은 순서대로
+          .toArray(function (err, foundmaps) {
+            if(err){
+              console.error(err)
+            } else {
+              console.log("found maps: ")
+              console.log(util.inspect(foundmaps, {depth: 5}));
+              return callback(null, foundmaps);
+            }
+      });
+      }
     });
   }
   
@@ -187,14 +201,15 @@ const signup = function(db, id, pw, email, callback){
     // get udgmap collection 
     var collection = db.collection('udgmap');
     // find maps whose 'onlyme' field is 0
-    collection.find({onlyme: 0}).toArray(function(err, allmaps) {
-        assert.equal(err, null);
-        console.log("all maps :");
-        //console.log(allmaps);
-        //console.log('%j', allmaps);
-        console.log(util.inspect(allmaps,{depth:5}));
-        // return the result
-        callback(allmaps); 
+    collection.find({visibility: true}).toArray(function(err, allmaps) {
+        if (err){
+            console.error(err);
+          } else {
+            console.log("allmaps :");
+            console.log(util.inspect(allmaps,{depth:5}));
+            // return the result
+            return callback(null, allmaps);
+          }
     });
   }
   
@@ -260,30 +275,27 @@ var server = http.createServer(function (req, res) {   //create web server
    
     process.setMaxListeners(20);
 
-    if (_url == '/') { //check the URL of the current request
-
+    if (_url == '/' | _url.startsWith('/mainpage.go')) { //check the URL of the current request
         // set response header
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        // set response content    
-        fs.readFile(__dirname + '/index.html', (err, data) => { // 파일 읽는 메소드
-            if (err) {
-                return console.error(err); // 에러 발생시 에러 기록하고 종료
-            }
-            res.end(data, 'utf-8'); // 브라우저로 전송
+        // set response content
+        fs.readFile(__dirname + '/index.html', function(err, data){
+          if(err){
+            console.error(err);
+          }
+          res.end(data, 'utf-8');
         });
-
-    }
-    else if (_url.startsWith('/mainpage.go')) { //check the URL of the current request
+  
+      } else if (_url.startsWith('/mainpage.do')){
         // set response header
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        // set response content    
-        fs.readFile(__dirname + '/index.html', (err, data) => { // 파일 읽는 메소드
-            if (err) {
-                return console.error(err); // 에러 발생시 에러 기록하고 종료
-            }
-            res.end(data, 'utf-8'); // 브라우저로 전송
-        });  
-
+        allmaps(db, function(err, allmap){
+          if(err){
+            console.error(err);
+          }
+          var result = JSON.stringify({allmap:allmap});
+          res.end(result,'utf-8');
+        });
     }
     else if (_url.startsWith('/mymap.go')) { //check the URL of the current request
         // set response header
@@ -392,12 +404,21 @@ var server = http.createServer(function (req, res) {   //create web server
         res.end();
 
     }
+    //지도 검색
     else if (_url.startsWith("/searchmap.do")) {
-
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.write('<html><h1>지도 검색 스크립트</h1><br/></html>', 'utf-8');
-        res.end();
-
+        console.log(query.lat, query.lng)
+        var x = Number(query.lat);
+        var y = Number(query.lng);
+          searchmaps(db, x, y, function(err, searchedMap){
+            if(err){
+              console.error(err)
+            }
+            var result = JSON.stringify({searchedMap:searchedMap});
+            res.end(result,'utf-8'); //브라우저로 전송
+          });
+  
+  
     }
 
     // 전체 회원

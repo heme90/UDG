@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" ng-app="myApp">
 
 <head>
   <meta charset="UTF-8">
@@ -30,31 +30,49 @@
   
 
   <script>
-    var app = angular.module("myApp", []);
-    app.controller("myCtrl", function ($scope) {
-      $scope.maplist = [
-        { id: 1, center: '동대문구', name: '이상준', content: '맛집 지도' },
-        { id: 2, center: '서초구', name: '이상준', content: '피씨방 추천' },
-        { id: 3, center: '은평구', name: '조윤기', content: '편의점포차' },
-        { id: 4, center: '마포구', name: '이낭경', content: '여행 지도' },
-        { id: 5, center: '용산구', name: '이낭경', content: '하우스클럽' }
-      ];
-      /*
-      // var colors = ['rgba(255, 0, 0, 0.7)', 'rgba(0, 255, 0, 0.7)', 'rgba(0, 0, 255, 0.7)'];
-      var colors = ['#ff0000', '#00ff00', '#000ff'];
-      
-      for (var i = 0; i < $scope.maplist.length; i++) {
-        var random_color = colors[Math.floor(Math.random() * colors.length)];
-        // document.getElementById('#content_'+i).style.backgroundColor = random_color;
-        // $('#content_'+i).css('background-color', random_color);
+      var app = angular.module("myApp", []);
+      app.controller("myCtrl", function ($scope, $http) {
+          
+        $scope.mapList;
 
-        var content = '#content_' + i;
-        $('content').attr('style', 'background-color:'+random_color);
-        // $(content).attr('style', $(content).attr('style').split('#207ce5').join(random_color);
-      }
-      */
-    });
+        $http({
+          method: 'GET', // HTTP 통신 방법
+          url: "/mainpage.do", // 통신 할 URL
+          timeout: 600000 // 1000 = 1초
+        }).then(function successCallBack(response) {
+          console.log("Success");
+          $scope.mapList = response.data.allmap;
+          console.log($scope.mapList)
+        }, function errorCallback(error) {
+          console.log("Error" + error);
+        });
 
+        $("#btn-submit").click(function(){
+          $.ajax({
+            url: "https://maps.googleapis.com/maps/api/geocode/xml?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&address="+$("#search-input").val(),
+            success: function(data) {
+              var location = data.getElementsByTagName("location")[0];
+              var lat = location.getElementsByTagName("lat")[0].textContent;
+              var lng = location.getElementsByTagName("lng")[0].textContent;
+              $http({
+                method: 'GET', // HTTP 통신 방법
+                url: "/searchmap.do", // 통신 할 URL
+                timeout: 600000, // 1000 = 1초
+                params: {
+                  lat: lat,
+                  lng: lng
+                }
+              }).then(function successCallBack(response) {
+                $scope.mapList = response.data.searchedMap;
+              }, function errorCallback(error) {
+                console.log("Error" + error);
+              });
+            }
+          });
+        });
+      });
+        
+        
   </script>
 
   <style>
@@ -214,7 +232,7 @@
   </style>
 </head>
 
-<body>
+<body ng-controller="myCtrl">
 
   <div class="container-fluid p-0 m-0">
     <!-- header -->
@@ -263,16 +281,14 @@
     </div>
   </div>
 
-
   <div class="container-fluid h-100 p-0 m-0 bg-light">
     <!-- map search -->
     <div class="row-fluid d-flex justify-content-center">
       <div class="col-lg-10 mx-4">
 
         <!-- contents -->
-        <div class="row" ng-app="myApp" ng-controller="myCtrl">
-          <div class="col-sm-4 p-2" ng-repeat="map in maplist">
-          
+        <div class="row">
+          <div class="col-sm-4 p-2" ng-repeat="map in mapList">
 
             <div class="thumb-wrapper">
               <div class="thumb-container">
@@ -283,18 +299,11 @@
                   </div>
                   <div class="thumb-img-overlay thumb-box-content"></div>
                   <div class="thumb-infos thumb-box-content">
-                    {{$index}} {{map.name}}님의<br>{{map.center}} {{map.content}}
+                    {{map.id}}님의<br>{{map.region}} {{map.mapname}}
                   </div>
                 </div>
               </div>
             </div>
-          
-            <!-- <div class="d-flex justify-content-center align-items-center" id="content_{{$index}}"
-              style="width: 100%; height: 200px; background: linear-gradient(-45deg, #5e2aff, #207ce5);">
-              <a href="#" class="text-white">
-                {{$index}} {{map.name}}님의 {{map.center}} {{map.content}}
-              </a>
-            </div> -->
 
           </div>
         </div>
@@ -367,8 +376,10 @@
       </div>
     </div>
   </footer>
+
   <script>
-    $("#loginbutton").click(function(){
+
+      $("#loginbutton").click(function(){
         $.ajax({
           url : "/login.do?id=" + $("#form-id").val() + "&pw=" + $("#form-pw").val(),
           type: 'GET',
@@ -376,38 +387,21 @@
             if (result) {
               ReadCookie();
               console.log(JSON.parse(result))
-            }else{
+            } else {
               alert("??")
             }
-    
           }
          
         });
       });
+    
       function ReadCookie() {
           var allcookies = document.cookie;
           alert("모든쿠키값 : " + allcookies);
       }
 
-      $("#btn-submit").click(function(){
-        $.ajax({
-          url: "https://maps.googleapis.com/maps/api/geocode/xml?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&address="+$("#search-input").val(),
-          success: function(data) {
-            var location = data.getElementsByTagName("location")[0];
-            var lat = location.getElementsByTagName("lat")[0].textContent;
-            var lng = location.getElementsByTagName("lng")[0].textContent;
-            $.ajax({
-              url: "/searchmap.do?lat="+lat+"&lng="+lng,
-              type: "GET",
-              success: function(res){
-                var searchedMap = JSON.parse(res);
-                alert(searchedMap[0].id);
-              }
-            });
-          }
-        }); 
-      }) 
-      </script>
+
+   </script>
 </body>
 
 </html>
