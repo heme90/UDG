@@ -47,28 +47,31 @@
           console.log("Error" + error);
         });
 
-        $("#btn-submit").click(function(){
-          $.ajax({
-            url: "https://maps.googleapis.com/maps/api/geocode/xml?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&address="+$("#search-input").val(),
-            success: function(data) {
-              var location = data.getElementsByTagName("location")[0];
-              var lat = location.getElementsByTagName("lat")[0].textContent;
-              var lng = location.getElementsByTagName("lng")[0].textContent;
-              $http({
-                method: 'GET', // HTTP 통신 방법
-                url: "/searchmap.do", // 통신 할 URL
-                timeout: 600000, // 1000 = 1초
-                params: {
-                  lat: lat,
-                  lng: lng
-                }
-              }).then(function successCallBack(response) {
-                $scope.mapList = response.data.searchedMap;
-              }, function errorCallback(error) {
-                console.log("Error" + error);
-              });
-            }
-          });
+        $("#search-input").keypress(function(event){
+          var keycode = (event.keyCode ? event.keyCode : event.which);
+          if (keycode == '13'){
+            $.ajax({
+              url: "https://maps.googleapis.com/maps/api/geocode/xml?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&address="+$("#search-input").val(),
+              success: function(data) {
+                var location = data.getElementsByTagName("location")[0];
+                var lat = location.getElementsByTagName("lat")[0].textContent;
+                var lng = location.getElementsByTagName("lng")[0].textContent;
+                $http({
+                  method: 'GET', // HTTP 통신 방법
+                  url: "/searchmap.do", // 통신 할 URL
+                  timeout: 600000, // 1000 = 1초
+                  params: {
+                    lat: lat,
+                    lng: lng
+                  }
+                }).then(function successCallBack(response) {
+                  $scope.mapList = response.data.searchedMap;
+                }, function errorCallback(error) {
+                  console.log("Error" + error);
+                });
+              }
+            });
+          }
         });
       });
         
@@ -254,7 +257,6 @@
               spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"
               aria-owns="algolia-autocomplete-listbox-0" dir="auto" value=""
               style="position: relative; right:7px; padding:3px 10px 3px 26px;">
-            <input type="button" id="btn-submit">
         </div>
       </div>
 
