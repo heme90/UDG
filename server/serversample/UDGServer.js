@@ -241,33 +241,43 @@ const signup = function(db, id, pw, email, callback){
     });
   }
 
-  const makemap = function(db, data, callback) {
-    // get udgmap collection 
-    var collection = db.collection('udgmap');
-    console.log("==================== makemap ====================");
- 
-    var max;
-    collection.find().sort({'mapno': -1}).limit(1).toArray(function(err, result) {
-        max = result[0]['mapno'];
+const makemap = function (db, data, callback) {
+  // get udgmap collection 
+  var collection = db.collection('udgmap');
 
-        collection.insertOne({
-            mapno: max + 1,
-            id: data.id,
-            region: data.region, 
-            mapname: data.mapname,
-            center: [data.center_lat, data.center_lng], 
-            zoom: data.zoom,
-            cnt_follow: data.cnt_follow, 
-            markers: data.markers
-        }, function(err, result){
-            assert.equal(err, null);
-            console.log("insertOne: " + result);
-    
-            // return the result
-            return callback(null, mymaps); 
-        });
+  var max;
+  collection.find().sort({ 'mapno': -1 }).limit(1).toArray(function (err, result) {
+    max = result[0]['mapno'];
+
+    collection.insertOne({
+      mapno: Number(max + 1),
+      id: data.id,
+      region: data.region,
+      mapname: data.mapname,
+      center: [Number(data.center_lat), Number(data.center_lng)],
+      zoom: Number(data.zoom),
+      cnt_follow: Number(data.cnt_follow),
+      markers: data.markers
+    }, function (err, result) {
+      assert.equal(err, null);
+
+      // return the result
+      return callback(null, result);
     });
+  });
 }
+
+const deletemap = function (db, no, callback) {
+  // get udbmap collection
+  var collection = db.collection('udgmap');
+  console.log("==================== deletemap ====================");
+  collection.deleteMany({ mapno: Number(no) }, function (err, result) {
+    assert.equal(err, null);
+
+    // return the result
+    return callback(null, result);
+  });
+}  
 
 var server = http.createServer(function (req, res) {   //create web server
     var _url = req.url;
@@ -323,22 +333,40 @@ var server = http.createServer(function (req, res) {   //create web server
         // res.sendDate(data);
     }
     else if (_url.startsWith("/makemap.do")) {
-        let body;
-        var post;
-        if (req.method === 'POST') {
-            req.on('data', data => {
-                body = data.toString();
-            });
-            req.on('end', () => {
-                post = qs.parse(body);
-                console.log(post);
-                makemap(db, post, function(err, result){
-                    var result = JSON.stringify({result : result})
-                    // console.log(result);
-                });
-            });
-        }
-        res.end('ok'); // 브라우저로 전송
+      let body;
+      var post;
+      if (req.method === 'POST') {
+        req.on('data', data => {
+          body = data.toString();
+        });
+        req.on('end', () => {
+          post = qs.parse(body);
+          console.log(post);
+          makemap(db, post, function (err, result) {
+            var result = JSON.stringify({ result: result })
+            // console.log(result);
+          });
+        });
+      }
+      res.end('ok'); // 브라우저로 전송
+    }
+    else if (_url.startsWith("/deletemap.do")) {
+      let body;
+      var post;
+      if (req.method === 'POST') {
+        req.on('data', data => {
+          body = data.toString();
+        });
+        req.on('end', () => {
+          post = qs.parse(body);
+          console.log(post);
+          deletemap(db, post.mapno, function (err, result) {
+            var result = JSON.stringify({ result: result })
+            console.log("결과: " + result);
+          });
+        });
+      }
+      res.end('ok'); // 브라우저로 전송
     }
     else if (_url.startsWith("/savemap.do")) {
 
