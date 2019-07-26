@@ -1,6 +1,7 @@
 var http = require('http'); // Import Node.js core module
 var fs = require('fs');
 var url = require('url');
+var qs = require('querystring');
 //var mong = require('./scripts/udg_mongo.js')
 const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
@@ -198,20 +199,16 @@ const signup = function(db, id, pw, email, callback){
   }
   
   //9. mymap.go : find my maps by id
-  const mymaps = function(db,id, callback) {
+  const mymaps = function(db, id, callback) {
     // get udgmap collection 
     var collection = db.collection('udgmap');
     // find my maps by id
     collection.find({id: id},{mymap:1}).toArray(function(err, mymaps) {
         assert.equal(err, null);
-        console.log("mymaps :");
-        //console.log(mymaps);
-        console.log(util.inspect(mymaps,{depth:5}));
         // return the result
-        callback(mymaps); 
+        return callback(null, mymaps); 
     });
   }
-  
   
   //10. myfollowmap.go : find my following maps by id
   const followmaps = function(db, id, callback) {
@@ -229,12 +226,38 @@ const signup = function(db, id, pw, email, callback){
     });
   }
 
+  const makemap = function(db, data, callback) {
+    // get udgmap collection 
+    var collection = db.collection('udgmap');
+    console.log("==================== makemap ====================");
+ 
+    var max;
+    collection.find().sort({'mapno': -1}).limit(1).toArray(function(err, result) {
+        max = result[0]['mapno'];
 
-
+        collection.insertOne({
+            mapno: max + 1,
+            id: data.id,
+            region: data.region, 
+            mapname: data.mapname,
+            center: [data.center_lat, data.center_lng], 
+            zoom: data.zoom,
+            cnt_follow: data.cnt_follow, 
+            markers: data.markers
+        }, function(err, result){
+            assert.equal(err, null);
+            console.log("insertOne: " + result);
+    
+            // return the result
+            return callback(null, mymaps); 
+        });
+    });
+}
 
 var server = http.createServer(function (req, res) {   //create web server
     var _url = req.url;
     var query = url.parse(_url, true).query;
+   
     process.setMaxListeners(20);
 
     if (_url == '/') { //check the URL of the current request
@@ -263,26 +286,63 @@ var server = http.createServer(function (req, res) {   //create web server
 
     }
     else if (_url.startsWith('/mymap.go')) { //check the URL of the current request
-
         // set response header
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         // set response content    
         fs.readFile(__dirname + '/mymap.html', (err, data) => { // 파일 읽는 메소드
             if (err) {
-                return console.error(err); // 에러 발생시 에러 기록하고 종료
-            }
+                console.error(err); // 에러 발생시 에러 기록하고 종료
+            } 
             res.end(data, 'utf-8'); // 브라우저로 전송
         });
-
     }
     else if (_url.startsWith('/mymap.do')) { //check the URL of the current request
-        mymaps(db,session.id, function(data){
-            res.sendDate(data)
+        mymaps(db, query.id, function(err, mymaps){
+            /*
+            for (i=0; i<mymaps.length; i++) {
+                mymaps[i] = JSON.stringify(mymaps[i]).replace(/"/gi, "\'");
+            }
+            var result = JSON.stringify({mymaps : mymaps}).replace(/"/gi, "\'");
+            console.log(result);
+            */
+            var result = JSON.stringify({mymaps : mymaps})
+            res.end(result, 'utf-8'); // 브라우저로 전송
         });
-    
+        // res.sendDate(data);
+    }
+    else if (_url.startsWith("/makemap.do")) {
+        let body;
+        var post;
+        if (req.method === 'POST') {
+            req.on('data', data => {
+                body = data.toString();
+            });
+            req.on('end', () => {
+                post = qs.parse(body);
+                console.log(post);
+                makemap(db, post, function(err, result){
+                    var result = JSON.stringify({result : result})
+                    // console.log(result);
+                });
+            });
+        }
+        res.end('ok'); // 브라우저로 전송
+    }
+    else if (_url.startsWith("/savemap.do")) {
+
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.write('<html><h1>지도 저장 스크립트</h1><br/></html>', 'utf-8');
+        res.end();
+
+    }
+    else if (_url.startsWith("/sharemap.do")) {
+
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.write('<html><h1>지도 공유 스크립트</h1><br/></html>', 'utf-8');
+        res.end();
+
     }
     else if (_url.startsWith('/myfollowmap.go')) { //check the URL of the current request
-
         // set response header
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         // set response content    
@@ -292,10 +352,8 @@ var server = http.createServer(function (req, res) {   //create web server
             }
             res.end(data, 'utf-8'); // 브라우저로 전송
         });
-
     }
     else if (_url.startsWith("/signup.go")) {
-
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
 
         fs.readFile(__dirname + '/signup.html', (err, data) => { // 파일 읽는 메소드
@@ -304,7 +362,6 @@ var server = http.createServer(function (req, res) {   //create web server
             }
             res.end(data, 'utf-8'); // 브라우저로 전송
         });
-
     }
     else if (_url.startsWith("/login.do")) {
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -327,28 +384,6 @@ var server = http.createServer(function (req, res) {   //create web server
             console.log(session.id)
             res.end(user[0] + "");
         });
-
-    }
-    else if (_url.startsWith("/makemap.do")) {
-
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.write('<html><h1>지도 생성 스크립트</h1><br/></html>', 'utf-8');
-        res.end();
-
-    }
-    else if (_url.startsWith("/savemap.do")) {
-
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.write('<html><h1>지도 저장 스크립트</h1><br/></html>', 'utf-8');
-        res.end();
-
-    }
-    else if (_url.startsWith("/sharemap.do")) {
-
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.write('<html><h1>지도 공유 스크립트</h1><br/></html>', 'utf-8');
-        res.end();
-
     }
     else if (_url.startsWith("/followmap.do")) {
 
