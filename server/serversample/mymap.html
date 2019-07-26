@@ -35,64 +35,166 @@
   <link href="css/mycss.css" rel="stylesheet">
 
   <script>
-    var m_maps = // 몽고와 연동되는 지도
-    [
-      {
-      "creator": "park", 
-      "center": { lat: 37.484963, lng: 127.016289 },
-      "zoom": 18,
-      "region": "서초구",
-      "mapname": "테스트 지도",
-      "visibility": false,
-      "markers": [{ "title": "1", "lat": 37.48478, "lng": 127.0160, "desc": { "content": "no.1" } },
-              { "title": "2", "lat": 37.48500, "lng": 127.0163, "desc": { "content": "no.2" } },
-              { "title": "3", "lat": 37.48479, "lng": 127.0166, "desc": { "content": "no.3" } }]
-     },{
-      "creator": "park",
-      "center": { lat: 37.543433, lng: 126.951544 },
-      "zoom": 17,
-      "region": "공덕역",
-      "mapname": "맛집 지도",
-      "visibility": false,
-      "markers": [{ "title": "1", "lat": 37.541685, "lng": 126.951306, "desc": { "content": "미분당" } },
-              { "title": "2", "lat": 37.541793, "lng": 126.950690, "desc": { "content": "굴다리김치찌개" } }]
-     },{
-      "creator": "park", 
-      "center": { lat: 37.55167473692547,  lng: 127.075966826421 },
-      "zoom": 15,
-      "region": "세종대",
-      "mapname": "힙스터 카페",
-      "visibility": true,
-      "markers": [{ "title": "1", "lat": 37.5556, "lng": 127.07186, "desc": { "content": "카페 쉼" } },
-              { "title": "2", "lat": 37.5543, "lng": 127.07243, "desc": { "content": "En Blossom" } },
-              { "title": "3", "lat": 37.55395, "lng": 127.07333, "desc": { "content": "Cafe Brick" } },
-              { "title": "4", "lat": 37.55412, "lng": 127.07439, "desc": { "content": "그리네" } },
-              { "title": "5", "lat": 37.55491, "lng": 127.07544, "desc": { "content": "187 Coffee" } },
-              { "title": "6", "lat": 37.55525, "lng": 127.07695, "desc": { "content": "Little Talks Coffee" } },
-              { "title": "7", "lat": 37.55303, "lng": 127.07224, "desc": { "content": "1월 14일" } },
-              { "title": "8", "lat": 37.55262, "lng": 127.07159, "desc": { "content": "FMM Cafe" } },
-              { "title": "9", "lat": 37.55506, "lng": 127.0786, "desc": { "content": "Cherry" } },
-              { "title": "10", "lat": 37.55701, "lng": 127.0821, "desc": { "content": "RADIANT" } },
-              { "title": "11", "lat": 37.54843, "lng": 127.07262, "desc": { "content": "롬곡" } },
-              { "title": "12", "lat": 37.54765, "lng": 127.06895, "desc": { "content": "cafe 9u9u" } },
-              { "title": "13", "lat": 37.54685, "lng": 127.07163, "desc": { "content": "Bellong Espresso" } },
-              { "title": "14", "lat": 37.54534, "lng": 127.07612, "desc": { "content": "On The Volume" } },
-              { "title": "15", "lat": 37.5457, "lng": 127.07702, "desc": { "content": "ONDO℃" } },
-              { "title": "16", "lat": 37.54521, "lng": 127.07347, "desc": { "content": "Rainy Rain" } },
-              { "title": "17", "lat": 37.54574, "lng": 127.073, "desc": { "content": "감성다방" } },
-              { "title": "18", "lat": 37.54775, "lng": 127.06991, "desc": { "content": "그리네" } }]
-     }
-    ];
+    var app = angular.module("myApp", []);
+    app.controller("myCtrl", function ($scope, $http) {
+
+      $scope.mapList;
+      
+      $http({
+        method: 'GET', // HTTP 통신 방법
+        url: "/mymap.do", // 통신 할 URL
+        timeout: 600000, // 1000 = 1초
+        params: { // 보낼 변수
+          id: "yunki"
+        }
+        // responseType: 'json',  // 데이터 타입
+        // header: {
+        //   "Content-Type": "application/json; charset=utf-8",
+        //   "Accept": "application/json"
+        // }
+      }).then(function successCallBack(response) {
+        console.log("Success");
+        $scope.mapList = response.data.mymaps;
+        m_maps = response.data.mymaps;
+        initMap();
+      }, function errorCallback(error) {
+        console.log("Error" + error);
+      });
+     
+      // 지도 목록 삭제
+      $scope.remove = function (no) {
+        if (!no) return;
+        var remove = confirm("지도를 삭제하시겠습니까?" + no);
+
+        if (remove == true) {
+          // var idx = -1;
+          // for (var i = 0; i < $scope.mapList.length; i++) {
+          //   if ($scope.mapList[i].id === id) {
+          //     idx = i;
+          //     break;
+          //   }
+          // }
+  
+          // if (idx === -1) return;
+          // $scope.mapList.splice(idx, 1);
+        }
+
+      };
+
+      $scope.userForm = {};
+
+      // 지도 목록 추가
+      $scope.add = function () {
+        var newMap = {
+          mapno: "",
+          id: "yunki",
+          region: "",
+          mapname: "새로운 지도",
+          center: [126.979330, 37.531402],
+          zoom: 11,
+          visibility: false,
+          cnt_follow: 0,
+          markers: []
+        };
+
+        $scope.mapList.push(newMap);
+        // console.log($scope.mapList.length);
+        currMap = $scope.mapList.length-1;
+
+        var sendData = $.param(newMap);
+        $http({
+          method: 'POST', // HTTP 통신 방법
+          url: "/makemap.do", // 통신 할 URL
+          timeout: 600000, // 1000 = 1초
+          data: $.param({ // 보낼 데이터
+            mapno: newMap.mapno,
+            id: newMap.id,
+            region: newMap.region,
+            mapname: newMap.mapname,
+            center_lat: newMap.center[1],
+            center_lng: newMap.center[0],
+            zoom: newMap.zoom,
+            visibility: newMap.visibility,
+            cnt_follow: newMap.cnt_follow,
+            markers: newMap.markers
+          })
+        }).then(function successCallBack(response) {
+          console.log("Success: new map");
+        }, function errorCallback(error) {
+          console.log("Error" + error);
+        });
+        initMap();
+      };
+
+      // 지도 목록 클릭시 지도 뷰 바꾸기
+      $scope.view = function (idx) {
+        currMap = idx;
+        initMap();
+      }
+
+      // 구글맵 마커를 몽고 마커에 저장하기
+      $scope.mapSave = function (idx) {
+        var region = $('#map_region').val();
+        var mapname = $('#map_name').val();
+        if (region == "") {
+          alert("지역을 입력해주세요.")
+          return;
+        }
+
+        if (mapname == "") {
+          alert("지도의 제목을 입력해주세요.")
+          return;
+        }
+
+        var save = confirm("지도를 저장하시겠습니까?");
+        if (save == true) {
+          m_markers = [];
+
+          // 구글맵 마커를 몽고 마커 형식으로 변환
+          for (i in g_markers) {
+            var title = g_markers[i]['title'];
+            var lat = g_markers[i]['position'].lat();
+            var lng = g_markers[i]['position'].lng();
+            var desc = g_markers[i]['description']['content'];
+
+            var marker = {
+              'title': title,
+              'lat': lat,
+              'lng': lng,
+              'desc': { 'content': desc }
+            };
+
+            m_markers.push(marker); // 몽고 마커 배열에 넣기
+          }
+
+          m_map['region'] = region;
+          m_map['mapname'] = mapname;
+          m_map['center'][1] = g_map['center'].lat();
+          m_map['center'][0] = g_map['center'].lng();
+          m_map['zoom'] = g_map['zoom'];
+          m_map['visibility'] = visibility;
+          m_map['markers'] = m_markers;
+
+          m_maps[currMap] = m_map;
+          print();
+        }
+      }
+    
+    });
+  </script>
+
+  <script>
+    var m_maps = [];
+    var m_map;
+    var m_markers; // 몽고와 연동되는 마커
     var currMap = 0;
-    var m_map = m_maps[currMap];
-    var m_markers = m_map['markers']; // 몽고와 연동되는 마커
 
     var g_map; // 구글맵의 지도
-    var g_markers = []; // 구글맵의 마커
-    var visibility = m_map['visibility']; // 구글맵의 공개여부
+    var g_markers; // 구글맵의 마커
+    var visibility; // 구글맵의 공개여부
 
-    var currMarker = -1; // 현재 마커를 가리키는 인덱스
-    var move = false;
+    var currMarker; // 현재 마커를 가리키는 인덱스
+    var move;
 
     function initMap() {
       m_map = m_maps[currMap];
@@ -105,7 +207,12 @@
       move = false;
 
       $('#map_region').val(m_map['region']); // 몽고 지도 지역 가져오기
-      $('#map_name').val(m_map['mapname']); // 몽고 지도 제목 가져오기
+      
+      if (m_map['mapname'] == "새로운 지도") {
+        $('#map_name').val("");
+      } else {
+        $('#map_name').val(m_map['mapname']); // 몽고 지도 제목 가져오기
+      }
 
       if (visibility == false) { // 비공개
         $('#unlock').hide();
@@ -115,9 +222,10 @@
         $('#unlock').show();
       }
 
+      m_center = { "lat": Number(m_map['center'][1]), "lng": Number(m_map['center'][0]) }
       // 구글맵 지도 생성
       g_map = new google.maps.Map(document.getElementById('udgmap'), {
-        center: m_map['center'], // 지도 중심 좌표
+        center: m_center, // 지도 중심 좌표
         zoom: m_map['zoom'] // 지도 배율. 숫자가 클 수록 확대됨
       });
 
@@ -158,9 +266,8 @@
       });
       
       print();
-      console.log(g_markers)
-      g_map.panTo(m_map['center']); // 구글맵 중심 이동
-      
+      // console.log(g_markers)
+      g_map.panTo(m_center); // 구글맵 중심 이동
     }
 
     // 몽고 마커를 구글맵 마커에 추가하기
@@ -170,7 +277,7 @@
 
       // 배열에 있는 값을 구글맵 마커 형식으로 변환
       for (i in m_markers) {
-
+      // for (i=0; i<m_markers.length; i++) {
         lat = Number(m_markers[i]['lat'])
         lng = Number(m_markers[i]['lng'])
 
@@ -372,48 +479,13 @@
       }
       print()
     }
-
-    // 구글맵 마커를 몽고 마커에 저장하기
-    function mapSave() {
-      var save = confirm("지도를 저장하시겠습니까?");
-
-      if (save == true) {
-        m_markers = [];
-      
-        // 구글맵 마커를 몽고 마커 형식으로 변환
-        for (i in g_markers) {
-          var title = g_markers[i]['title'];
-          var lat = g_markers[i]['position'].lat();
-          var lng = g_markers[i]['position'].lng();
-          var desc = g_markers[i]['description']['content'];
-
-          var marker = {
-            'title': title,
-            'lat': lat,
-            'lng': lng,
-            'desc': {'content': desc}
-          };
-
-          m_markers.push(marker); // 몽고 마커 배열에 넣기
-        }
-
-        m_map['center']['lat'] = g_map['center'].lat();
-        m_map['center']['lng'] = g_map['center'].lng();
-        m_map['zoom'] = g_map['zoom'];
-        m_map['visibility'] = visibility;
-        m_map['markers'] = m_markers;
-
-        m_maps[currMap] = m_map;
-        print();
-      }
-    }
-
+    
     /******************************/
 
     function print() {
       document.getElementById('curr').innerHTML = "currMap: " + currMap + ", currMarker: " + currMarker;
 
-      document.getElementById('mongo').innerHTML = "center: (" + m_map['center']['lat'] + ", " + m_map['center']['lng'] + ")<br>";
+      document.getElementById('mongo').innerHTML = "center: (" + m_map['center'][1] + ", " + m_map['center'][0] + ")<br>";
       document.getElementById('mongo').innerHTML += "zoom: " + m_map['zoom'] + "<br>";
       document.getElementById('mongo').innerHTML += "마커 " + m_markers.length + "개<br>";
       document.getElementById('mongo').innerHTML += "공개여부:  " + m_map['visibility'] + "<br>";
@@ -424,7 +496,7 @@
         document.getElementById('mongo').innerHTML += "desc: " + m_markers[i]['desc']['content'] + "<br>";
       }
 
-      document.getElementById('google').innerHTML = "center: " + g_map['center'] + "<br>";
+      document.getElementById('google').innerHTML = "center: (" + g_map['center'].lat() + ", " + g_map['center'].lng() + ")<br>";
       document.getElementById('google').innerHTML += "zoom: " + g_map['zoom'] + "<br>";
       document.getElementById('google').innerHTML += "마커 " + g_markers.length + "개<br>";
       document.getElementById('google').innerHTML += "공개여부:  " + visibility + "<br>";
@@ -438,60 +510,12 @@
 
   </script>
 
-  <script>
-   var app = angular.module("myApp", []);
-      app.controller("myCtrl", function ($scope) {
-          $scope.mapList = m_maps;
-
-          // 지도 목록 삭제
-          $scope.remove = function (id) {
-            alert(remove);
-            if (!id) return;
-
-            var idx = -1;
-            for (var i = 0; i < $scope.mapList.length; i++) {
-              if ($scope.mapList[i].id === id) {
-                idx = i;
-                break;
-              }
-            }
-
-            if (idx === -1) return;
-            $scope.mapList.splice(idx, 1);
-          };
-
-          $scope.userForm = {};
-
-          // 지도 목록 추가
-          $scope.addMap = function () {
-            var newMap = {
-              id: $scope.userForm.id,
-              pw: $scope.userForm.pw,
-              name: $scope.userForm.name,
-              region: $scope.userForm.region,
-              email: $scope.userForm.email
-            };
-
-            $scope.mapList.push(newMap);
-          };
-
-          // 지도 목록 클릭시 지도 뷰 바꾸기
-          $scope.view = function (idx) {
-            currMap = idx;
-            initMap();
-          }
-          
-        });
-  
-  </script>
-
-
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&callback=initMap"
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo"
     async defer></script>
 
 </head>
 
-<body>
+<body ng-controller="myCtrl">
 
   <div class="container-fluid p-0 m-0">
     <!-- header -->
@@ -551,55 +575,25 @@
             <div class="row mb-2 d-flex justify-content-between align-items-center">
               <div class="col-9">
                 <h5 class="m-0">
-                  내 지도 목록&nbsp;
+                  내 지도 목록
                 </h5>
               </div>
               <div class="col-1 text-right p-0 mr-3">
-                <button class="btn btn-secondary p-0 m-0 circle" style="width: 32px; height: 32px; border-radius: 50%;">
+                <button class="btn btn-secondary p-0 m-0 circle" style="width: 32px; height: 32px; border-radius: 50%;" ng-click="add()">
                   <i class="fas fa-plus fa-xs" style="color: white; margin: 0 1px 1px 1;"></i>
                 </button>
               </div>
             </div>
 
             <!-- map list -->
-            <div  ng-controller="myCtrl">
-
-              <ul class="pl-4">
-                <li ng-repeat="item in mapList">
-                  <a href="#" ng-click="view($index)">{{item.region}} {{item.mapname}}</a>
-                  <i class="fas fa-lock fa-xs pl-1" style="color: #adb5bd;"></i>
-                  <i class="fas fa-trash fa-xs pl-1" style="color: #adb5bd;" ng-click="remove($index)"></i>
-                </li>
-                <!-- new map -->
-                <!-- <li>
-                  <form class="form-group">
-                    <div class="input-group input-group-sm mb-3">
-                      <input type="text" class="form-control" placeholder="새로운 지도" aria-label="새로운 지도" aria-describedby="button-addon">
-                      <div class="input-group-append">
-                        <button class="btn btn-sm p-0" type="button" id="button-addon" style="background-color: #adb5bd;">
-                          <i class="fas fa-check fa-sm px-2" style="color: white;"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </form>
-                </li> -->
-              </ul>
-
-
-              <!-- <hr>
-              <ul class="pl-4">
-                <li>
-                  <a href="#">서초구 맛집지도</a> <i class="fas fa-trash fa-xs pl-1" style="color: #adb5bd;"></i>
-                </li>
-                <li>
-                  <a href="#">광진구 둘레길</a> <i class="fas fa-lock fa-xs pl-1" style="color: #adb5bd;"></i> <i class="fas fa-trash fa-xs pl-1" style="color: #adb5bd;"></i>
-                </li>
-                <li>
-                  <a href="#">강남구 핫플레이스</a> <i class="fas fa-lock fa-xs pl-1" style="color: #adb5bd;"></i> <i class="fas fa-trash fa-xs pl-1" style="color: #adb5bd;"></i>
-                </li>
-              </ul> -->
-            </div>
-
+            <ul class="pl-4">
+              <li ng-repeat="item in mapList">
+                <a href="#" ng-click="view($index)">[{{$index}}] {{item.mapno}} {{item.region}} {{item.mapname}}</a>
+                <i class="fas fa-lock fa-xs pl-1" style="color: #adb5bd;"></i>
+                <i class="fas fa-trash fa-xs pl-1" style="color: #adb5bd;" ng-click="remove(item.mapno)"></i>
+              </li>
+            </ul>
+            
           </div>
 
           <!-- map view -->
@@ -650,7 +644,7 @@
                     <div class="row-fluid d-flex justify-content-end">
                       <i class="fas fa-lock fa-2x" id="lock" onclick="lockUnlock()" style="color:tomato;"></i>
                       <i class="fas fa-unlock fa-2x" id="unlock" onclick="lockUnlock()" style="color:ForestGreen; display:none;"></i>
-                      <i class="fas fa-cloud-upload-alt fa-2x pl-4" id="save" onclick="mapSave()" style="color:dodgerblue;"></i>
+                      <i class="fas fa-cloud-upload-alt fa-2x pl-4" id="save" ng-click="mapSave()" style="color:dodgerblue;"></i>
                     </div>
 
                 </div>
@@ -680,6 +674,8 @@
         </td>
       </tr>
     </table>
+    <div id="angular">{{mapList}}</div>
+    
 
     <!-- modal -->
     <div class="modal fade" id="signinModal" tabindex="-1" role="dialog" aria-labelledby="signinModalLabel"
