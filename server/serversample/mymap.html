@@ -114,7 +114,6 @@
         // console.log($scope.mapList.length);
         currMap = $scope.mapList.length-1;
 
-        var sendData = $.param(newMap);
         $http({
           method: 'POST', // HTTP 통신 방법
           url: "/makemap.do", // 통신 할 URL

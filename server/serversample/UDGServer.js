@@ -244,7 +244,6 @@ const signup = function(db, id, pw, email, callback){
 const makemap = function (db, data, callback) {
   // get udgmap collection 
   var collection = db.collection('udgmap');
-
   var max;
   collection.find().sort({ 'mapno': -1 }).limit(1).toArray(function (err, result) {
     max = result[0]['mapno'];
@@ -254,8 +253,9 @@ const makemap = function (db, data, callback) {
       id: data.id,
       region: data.region,
       mapname: data.mapname,
-      center: [Number(data.center_lat), Number(data.center_lng)],
+      center: [Number(data.center_lng), Number(data.center_lat)],
       zoom: Number(data.zoom),
+      visibility: data.visibility,
       cnt_follow: Number(data.cnt_follow),
       markers: data.markers
     }, function (err, result) {
@@ -320,13 +320,6 @@ var server = http.createServer(function (req, res) {   //create web server
     }
     else if (_url.startsWith('/mymap.do')) { //check the URL of the current request
         mymaps(db, query.id, function(err, mymaps){
-            /*
-            for (i=0; i<mymaps.length; i++) {
-                mymaps[i] = JSON.stringify(mymaps[i]).replace(/"/gi, "\'");
-            }
-            var result = JSON.stringify({mymaps : mymaps}).replace(/"/gi, "\'");
-            console.log(result);
-            */
             var result = JSON.stringify({mymaps : mymaps})
             res.end(result, 'utf-8'); // 브라우저로 전송
         });
@@ -344,7 +337,7 @@ var server = http.createServer(function (req, res) {   //create web server
           console.log(post);
           makemap(db, post, function (err, result) {
             var result = JSON.stringify({ result: result })
-            // console.log(result);
+            console.log("결과: " + result);
           });
         });
       }
