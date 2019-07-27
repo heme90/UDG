@@ -47,11 +47,6 @@
         params: { // 보낼 변수
           id: "yunki"
         }
-        // responseType: 'json',  // 데이터 타입
-        // header: {
-        //   "Content-Type": "application/json; charset=utf-8",
-        //   "Accept": "application/json"
-        // }
       }).then(function successCallBack(response) {
         console.log("Success");
         $scope.mapList = response.data.mymaps;
@@ -71,9 +66,9 @@
             method: 'POST', // HTTP 통신 방법
             url: "/deletemap.do", // 통신 할 URL
             timeout: 600000, // 1000 = 1초
-            data: $.param({ // 보낼 데이터
+            data: { // 보낼 데이터
               mapno: no
-            })
+            }
           }).then(function successCallBack(response) {
             console.log("Success: delete map");
           }, function errorCallback(error) {
@@ -111,25 +106,16 @@
         };
 
         $scope.mapList.push(newMap);
-        // console.log($scope.mapList.length);
         currMap = $scope.mapList.length-1;
 
+        var sendData = $.param(newMap);
         $http({
           method: 'POST', // HTTP 통신 방법
           url: "/makemap.do", // 통신 할 URL
           timeout: 600000, // 1000 = 1초
-          data: $.param({ // 보낼 데이터
-            mapno: newMap.mapno,
-            id: newMap.id,
-            region: newMap.region,
-            mapname: newMap.mapname,
-            center_lat: newMap.center[1],
-            center_lng: newMap.center[0],
-            zoom: newMap.zoom,
-            visibility: newMap.visibility,
-            cnt_follow: newMap.cnt_follow,
-            markers: newMap.markers
-          })
+          data: { // 보낼 데이터
+            newMap : newMap
+          },
         }).then(function successCallBack(response) {
           console.log("Success: new map");
         }, function errorCallback(error) {

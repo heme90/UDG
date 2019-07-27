@@ -103,24 +103,25 @@ const signup = function(db, id, pw, email, callback){
     });
   }
   
-  // 4. savemap.do : save new markers on an existing map
-  const addmarkers = function(db,id,dname,x,y,markers, callback){
-    //get udgmap collection
-    var collection = db.collection('udgmap');
-    //for forEach
-    var mks = markers['mks']; 
-    //object{"title" : "1","lat" : 37.484781,"lng" : 127.0162, "desc" : {"con" : "no.1"}}
-    //markers 원형은 아래 참고 
-    mks.forEach(function(items,index){
-      collection.updateOne({id:id, dname:dname,dcenter:[x,y]}
-        ,{ $push: {markers: {title: items.title
-        , lat:items.lat, lng:items.lng
-        , desc : {content:items.desc.con}}}}, function(err,result){
-        assert.equal(1, result.result.n);
-        console.log('added a marker in the map');
-      });
-    });
-  }
+// 4. savemap.do : edit map 
+const editmap = function (db, editedmap, callback) {
+  //get udgmap collection
+  var collection = db.collection('udgmap');
+  collection.updateOne({ $and: [{ id: editedmap.id }, { mapno: editedmap.mapno }] }
+    , {
+      $set: {
+        region: editmap.region,
+        mapname: editedmap.mapname,
+        center: [editedmap.center[1], editedmap.center[0]],
+        zoom: editedmap.zoom,
+        visibility: editedmap.visibility,
+        markers: editedmap.markers,
+      }
+    }, function (err, rs) {
+      if (err) { console.error(err); }
+      console.log('성공');
+    })
+}
   
   /*
   var markers ={"c_id" : "aa", "center":{lat: 37.484780, lng: 127.016129} 
@@ -245,6 +246,7 @@ const makemap = function (db, data, callback) {
   // get udgmap collection 
   var collection = db.collection('udgmap');
   var max;
+  console.log("==================== makemap ====================");
   collection.find().sort({ 'mapno': -1 }).limit(1).toArray(function (err, result) {
     max = result[0]['mapno'];
 
@@ -253,7 +255,7 @@ const makemap = function (db, data, callback) {
       id: data.id,
       region: data.region,
       mapname: data.mapname,
-      center: [Number(data.center_lng), Number(data.center_lat)],
+      center: data.center,
       zoom: Number(data.zoom),
       visibility: data.visibility,
       cnt_follow: Number(data.cnt_follow),
@@ -333,9 +335,9 @@ var server = http.createServer(function (req, res) {   //create web server
           body = data.toString();
         });
         req.on('end', () => {
-          post = qs.parse(body);
+          post = JSON.parse(body);
           console.log(post);
-          makemap(db, post, function (err, result) {
+          makemap(db, post.newMap, function (err, result) {
             var result = JSON.stringify({ result: result })
             console.log("결과: " + result);
           });
@@ -351,7 +353,7 @@ var server = http.createServer(function (req, res) {   //create web server
           body = data.toString();
         });
         req.on('end', () => {
-          post = qs.parse(body);
+          post = JSON.parse(body);
           console.log(post);
           deletemap(db, post.mapno, function (err, result) {
             var result = JSON.stringify({ result: result })
