@@ -54,6 +54,153 @@
             }
         });
     </script>
+    <!--for validation-->
+    <script>
+
+        // 정규식 
+        var re_idpw = /^[a-zA-Z0-9]{4,15}$/ // 아이디와 패스워드 검사 정규식
+        var re_email = /^[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*.[a-zA-Z]{2,3}$/i; // 이메일 검사 정규식
+
+        // 정규식 검사 수행
+        function check(re, what) {
+            if (re.test(what.value)) {
+                return true;
+            }
+            return false;
+        }
+        // id, email 중복확인 버튼 중복 클릭 방지 함수
+        function doubleConfirmCheck(flag) { // 최초 1회 시만 confirm 함수 수행 
+            if (flag) { //flag가 true라면 이미 중복검사가 완료됨
+                alert('중복 확인이 된 id입니다.')
+                return flag;
+            } else { //false라면 중복확인을 아직 안했으므로 그냥 패스 
+                return false;
+            }
+        }
+
+        //id, email 중복확인
+        function verifyUser(toverify){
+            /*
+            $.ajax({
+                url: '/verifyuser.do',
+                method: 'GET',
+                data: {
+                    toverify: toverify
+                },
+                success: function(result){
+                    console.log(result);
+                }
+            })*/
+        }
+
+        // id validation
+        var id_old = "";
+        var id_new = "";
+        var chkrs;
+        var idFlag = false; // false = 중복확인 하지 않은 상태 
+        function validateId() {
+            id_new = document.getElementById("id");
+            if (id_new.value == ""){
+                document.getElementById("id_valid_rs").innerHTML="";
+            } else { // id값이 비어있지 않을 때
+                if (id_old != id_new) { // id 입력 내용에 변화가 있다면
+                    //console.log(id_new.value);
+                    //중복 확인 여부를 false로 설정
+                    idFlag = false;
+                    // id양식 확인
+                    chkrs = check(re_idpw, id_new);
+                    if (!chkrs) { // id 양식이 맞지 않으면
+                        document.getElementById("id_valid_rs").innerHTML = "4~12자의 영문 대소문자와 숫자만 입력하세요"
+                    } else if (!idFlag) { // 적합한 아이디인데 중복확인 하지 않았다면
+                        document.getElementById("id_valid_rs").innerHTML = "중복확인을 해 주세요"
+                        return false;
+                    } else {
+                        //console.log('===========goodtogo===============')
+                        document.getElementById("id_valid_rs").innerHTML = "사용 가능한 아이디입니다"
+                        return false;
+                    }
+                }
+            } // else end
+        }
+        function confirmId(idFlag){
+            if (doubleConfirmCheck()){ // 중복확인을 수행한 상태라면
+                console.log("중복확인이 된 아이디입니다");
+                // 중복확인 시 버튼 변경 등 다른 표시 해줘야!
+                return false; 
+            } else { 
+                // db 다녀오는 쿼리 수행 id exists 
+                // if not exists then id_old = id_new;
+                idFlag = true;
+            }
+        }
+
+        // pw validation
+        var pw="";
+        var pwcheck="";
+        function validatePw(){ // 최초 비밀번호 입력시 입력 형태 검사
+            pw = document.getElementById("pw");
+            if(pw.value==""){
+                document.getElementById("pw_valid_rs").innerHTML="";
+            }
+            //pw 양식 확인
+            chkrs = check(re_idpw, pw)
+            if(!chkrs) { //양식에 부합하지 않는다면 
+                document.getElementById("pw_valid_rs").innerHTML="4~15자의 영문 대소문자와 숫자만 입력하세요";
+                return false;
+            } else {
+                document.getElementById("pw_valid_rs").innerHTML="";
+                return false;
+            }
+        }
+        function verifyPw() { //동일한 비밀번호를 적었는지 확인 
+            pwcheck = document.getElementById("pwcheck");
+            if (pw.value == pwcheck.value) { 
+                document.getElementById("pw_verify_rs").innerHTML="비밀번호가 일치합니다";
+                return false;
+            } else {
+                document.getElementById("pw_verify_rs").innerHTML='비밀번호가 맞지 않습니다';
+                return false;
+            }
+        }
+
+        //email validation
+        var email_old = "";
+        var email_new = "";
+        var emailFlag = false;
+        function validateEmail(){
+            email_new = document.getElementById("email");
+            if (email_new.value==""){
+                document.getElementById("email_valid_rs").innerHTML="";
+            } else { // email값이 비어있지 않을 때
+                if (email_old != email_new) { // email 입력 내용에 변화가 있다면
+                    //중복 확인 여부를 false로 설정
+                    emailFlag = false;
+                    // id양식 확인
+                    chkrs = check(re_email, email_new, "적합하지 않은 이메일 양식입니다.");
+                    if (!chkrs) { // id 양식이 맞지 않으면
+                        document.getElementById("email_valid_rs").innerHTML = "다음과 같이 작성해주세요 ex) hi@udg.com";
+                    } else if (!emailFlag) { // 적합한 아이디인데 중복확인 하지 않았다면
+                        document.getElementById("email_valid_rs").innerHTML = "중복확인을 해 주세요";
+                        return false;
+                    } else {
+                        //console.log('===========goodtogo===============')
+                        document.getElementById("email_valid_rs").innerHTML = "사용 가능한 이메일입니다";
+                        return false;
+                    }
+                }
+            } // else end
+        }
+        
+        function confirmEmail(){
+            if (doubleConfirmCheck()){ // true일 시 수행하지 않음
+                return false;
+            } else { //false라면 수행한 후 idFlag에 true전달
+                // db 다녀오는 쿼리 수행 email exists?
+                // if not exists email_old = email_new;
+                emailFlag = true;
+            }
+        }
+    </script>
 </head>
 
 <body ng-controller="myCtrl">
@@ -115,9 +262,10 @@
                 <div class="row d-flex justify-content-center">
                     <div class="col-6">
                         <form class="form-group" ng-submit="addUser()">
-                            <input type="text" class="form-control mb-2" placeholder="아이디" name="id" ng-model="userForm.id">
-                            <input type="text" class="form-control mb-2" placeholder="비밀번호" name="pw" ng-model="userForm.pw">
-                            <input type="text" class="form-control mb-2" placeholder="이메일" name="email" ng-model="userForm.email">
+                            <input type="text" class="form-control mb-2" placeholder="아이디" name="id" id="id" ng-model="userForm.id" onkeyup="validateId()" /><div id="id_valid_rs"></div><button onclick="confirmId()">중복확인</button>
+                            <input type="password" class="form-control mb-2" placeholder="비밀번호" name="pw" id ="pw" ng-model="userForm.pw" onkeyup="validatePw()" /> <div id="pw_valid_rs"></div>
+                            <input type="password" class="form-control mb-2" name="pwcheck" id="pwcheck" placeholder="비밀번호 확인" onkeyup="verifyPw()" /> <div id="pw_verify_rs"></div>
+                            <input type="text" class="form-control mb-2" placeholder="이메일" name="email" id ="email" ng-model="userForm.email"  onkeyup="validateEmail()" /><div id="email_valid_rs"></div><button onclick="confirmEmail()">중복확인</button>
                             <button type="submit" class="btn btn-primary btn-block">회원가입</button>
                         </form>
                     </div>

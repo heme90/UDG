@@ -28,46 +28,22 @@ client.connect(function(err) {
   //여기서 테스트를 원하는 function 호출
 });
 
-
-
-// Use connect method to connect to the Server
-const pointtomap = function(db, lat, lng, callback){
-    //get user collection
-    //insert new userinfo
-    db.collection("udgmap").find({center : {$near :{
-        $geometry: { type: "Point",  coordinates: [ lat, lng ] },
-        $maxDistance: 0.10
-      }}}).toArray(function(err,result){
-      //assert.equal(err,null);
-      //assert.equal(1,results.result.n);
-      //assert.equal(1,results.ops.length);
-      return callback(result);
-    });
-  }
-  
 //1. signin.do : find user by id, pw for login
-const signin = function(db,id,pw,callback) {
-    // get user collection 
-    // find user by id, pw
-    db.collection("user").find({$and : [{id : id}, {pw: pw}]}).toArray(function(err, userinfo) {
-        assert.equal(err, null);
-        console.log("found user :");
-        console.log(userinfo); //dcenter : [Array]
-        // return the result
-        return callback(null,userinfo);
-    });
-
-    //
-
-    //assert.equal(err, null);
-    //    console.log("found user :");
-    //    console.log(userinfo); //dcenter : [Array]
-    //    // return the result
-    //    callback(userinfo); 
+const signin = function (db, id, pw, callback) {
+  // get user collection 
+  // find user by id, pw
+  db.collection("user").find({ $and: [{ id: id }, { pw: pw }] }).toArray(function (err, userinfo) {
+      assert.equal(err, null);
+      console.log("found user :");
+      console.log(userinfo); //dcenter : [Array]
+      // return the result
+      return callback(null, userinfo);
+  });
 }
   
-  //2. signup.do : insert new user info when signing up
-  const signup = function(db, data, callback){
+
+//2-1. signup.do : insert new user info when signing up
+const signup = function(db, data, callback){
     //get user collection
     var collection = db.collection('user');
     //insert new userinfo
@@ -83,8 +59,31 @@ const signin = function(db,id,pw,callback) {
       callback(result);
     });
   }
+//2-2 id 중복확인
+const findUserId = function (db, data, callback) {
+  var collection = db.collection('user');
 
-  const deleteUser = function (db, data, callback) {
+  collection.find({
+    id: data.id
+  }).toArray(function (err, result) {
+    console.log(result);
+    return callback(null, result)[0];
+  });
+}
+//2-3 email 중복확인
+const findUserEmail = function (db, data, callback) {
+  var collection = db.collection('user');
+
+  collection.find({
+    id: data.email
+  }).toArray(function (err, result) {
+    console.log(result);
+    return callback(null, result[0]);
+  });
+}
+
+//3. 회원 삭제
+const deleteUser = function (db, data, callback) {
     // get udbmap collection
     var collection = db.collection('user');
     collection.deleteMany({
@@ -97,8 +96,8 @@ const signin = function(db,id,pw,callback) {
       return callback(null, result);
     });
   }
-
-  const updateUser = function (db, data, callback) {
+//4. 회원정보 수정  (pw, email)
+const updateUser = function (db, data, callback) {
     var collection = db.collection('user');
     collection.updateOne({id: data.id}, {
       $set: {
@@ -110,8 +109,8 @@ const signin = function(db,id,pw,callback) {
       return callback(null, result);
     });
   }
-  
-  const findAllUser = function (db, callback) {
+//5. 모든 회원 리스트 
+const findAllUser = function (db, callback) {
     var collection = db.collection('user');
   
     collection.find().toArray(function (err, result) {
@@ -120,191 +119,8 @@ const signin = function(db,id,pw,callback) {
     });
   }
 
-  const findUserId = function (db, data, callback) {
-    var collection = db.collection('user');
-  
-    collection.find({
-      id: data.id
-    }).toArray(function (err, result) {
-      console.log(result);
-      return callback(null, result);
-    });
-  }
-
-  const findUserEmail = function (db, data, callback) {
-    var collection = db.collection('user');
-  
-    collection.find({
-      id: data.email
-    }).toArray(function (err, result) {
-      console.log(result);
-      return callback(null, result);
-    });
-  }
-
-  //3. addmap.do : 
-  //3-1 :make a new map in udgmap collection
-  const addmap_udg = function(db,id,dname,x,y,o, callback){
-    //get udgmap collection
-    var collection = db.collection('udgmap');
-    //insert a new map
-    collection.insertOne({id:id, dname:dname, dcenter:[x,y], onlyme:o, cnt_follow:0, markers:[]}, function(err,result){
-      console.log('inserted mymap in udgmap');
-      callback(result);
-    });
-  }
-  //3-2: add a map in user document in user collection
-  const addmap_user = function(db,id,dname,x,y, callback){
-    //get user collection
-    var collection = db.collection('user');
-    //add a new map
-    collection.updateOne({id:id}
-      ,{ $set: {'mymap.creator': id, 'mymap.dname': dname, 'mymap.dcenter': [x,y] } }, function(err,result){
-      console.log('added a map in user mymap');
-      callback(result);
-    });
-  }
-  
-// 4. savemap.do : edit map 
-const editmap = function (db, data, callback) {
-  //get udgmap collection
-  var collection = db.collection('udgmap');
-
-  collection.updateOne({ $and: [{ id: data.id }, { mapno: data.mapno }] },
-    {
-      $set: {
-        region: data.region,
-        mapname: data.mapname,
-        center: data.center,
-        zoom: data.zoom,
-        visibility: data.visibility,
-        markers: data.markers,
-      }
-    }, function (err, rs) {
-      if (err) { console.error(err); }
-      console.log('성공');
-    })
-}
-  
-  /*
-  var markers ={"c_id" : "aa", "center":{lat: 37.484780, lng: 127.016129} 
-          , "mapname" : "안녕" 
-          , "mks" : [   {"title" : "1","lat" : 37.484781,"lng" : 127.0162, "desc" : {"con" : "no.1"} }
-          ,{"title" : "2","lat" : 37.484800,"lng" : 127.0163, "desc" : {"con" : "no.2"} }
-          ,{"title" : "3","lat" : 37.484789,"lng" : 127.0164, "desc" : {"con" : "no.3"} }]};
-  */
-  
-  //5. sharemap.do : set a map shared 
-  const shared = function(db,id,dname,x,y, callback){
-    //get user collection
-    var collection = db.collection('udgmap');
-    //set the map shared
-    collection.updateOne({id:id, dname: dname, dcenter:[x,y]}, {$set: {onlyme:0}}, function(err, result){
-      assert.equal(1,result.result.n);
-      console.log('the map is shared now');
-      callback(result);
-    });
-  }
-  
-  
-  
-  //6. followmap.do : add a map to the user's follow field
-  //6-1: user collection update
-  const followmap_add = function(db,id,c_id, dname, x,y, callback){
-    //get user collection
-    var collection = db.collection('user');
-    //update user document
-    collection.updateOne({id:id}
-      ,{$set:{'follow.creator':c_id, 'follow.dname':dname, 'follow.dcenter':[x,y]}}, function(err,result){
-      console.log('added a map in user followmap');
-    });
-  }
-  
-  //6-2: udgmap collection update - cnt_follow +1
-  const followcnt_inc = function(db,id, dname, x,y, callback){
-    //get udgmap collection
-    var collection = db.collection('udgmap');
-    //cnt_follow +1
-    collection.updateOne({id:id, dname: dname, dcenter:[x,y]},{$inc:{cnt_follow:1}}, function(err,result){
-      console.log('increased cnt_follow by 1');
-    });
-  }
-  
-  
-  //7. searchmap.do : find shared maps of certain location, sorted by cnt_follow
-  const searchmaps = function (db, x, y, callback) {
-    // get udgmap collection 
-    var collection = db.collection('udgmap');
-    // find shared maps at the point of [x,y]
-    collection.createIndex({center:"2dsphere"}, function(err, result){
-      if (err){
-        console.error(err);
-        //
-      } else {
-        console.log("성공");
-        collection.find({ $and: [{ center: {$near : {
-          $geometry: {type:'Point', coordinates: [y,x]}, //위도, 경도 순으로 들어온 좌표를 경도, 위도순으로 find
-          $maxDistance: 7000}}}, //해당 좌표에서 300미터 이내에 있는 지점 찾기
-          { visibility: true }] }) // 공개된 지도만 찾아온다
-          .sort({ cnt_follow: -1 })//팔로우 수가 많은 순서대로
-          .toArray(function (err, foundmaps) {
-            if(err){
-              console.error(err)
-            } else {
-              console.log("found maps: ")
-              console.log(util.inspect(foundmaps, {depth: 5}));
-              return callback(null, foundmaps);
-            }
-      });
-      }
-    });
-  }
-  
-  //8. mainpage.go : find all maps that is shared
-  const allmaps = function(db, callback) {
-    // get udgmap collection 
-    var collection = db.collection('udgmap');
-    // find maps whose 'onlyme' field is 0
-    collection.find({visibility: true}).toArray(function(err, allmaps) {
-        if (err){
-            console.error(err);
-          } else {
-            console.log("allmaps :");
-            console.log(util.inspect(allmaps,{depth:5}));
-            // return the result
-            return callback(null, allmaps);
-          }
-    });
-  }
-  
-  //9. mymap.go : find my maps by id
-  const mymaps = function(db, id, callback) {
-    // get udgmap collection 
-    var collection = db.collection('udgmap');
-    // find my maps by id
-    collection.find({id: id},{mymap:1}).toArray(function(err, mymaps) {
-        assert.equal(err, null);
-        // return the result
-        return callback(null, mymaps); 
-    });
-  }
-  
-  //10. myfollowmap.go : find my following maps by id
-  const followmaps = function(db, id, callback) {
-    // get user collection 
-    var collection = db.collection('user');
-    // find following maps by id
-    var ft = { followmap: 1}
-    collection.find({id: id}, {projection:ft}).toArray(function(err, followmaps) {
-        assert.equal(err, null);
-        console.log("followmaps :");
-        //console.log(followmaps);
-        console.log(util.inspect(followmaps,{depth:5}));
-        // return the result
-        callback(followmaps); 
-    });
-  }
-
+//addmap.do : 
+//6. make a new map in udgmap collection
 const addmap = function (db, data, callback) {
   // get udgmap collection 
   var collection = db.collection('udgmap');
@@ -325,13 +141,35 @@ const addmap = function (db, data, callback) {
       markers: data.markers
     }, function (err, result) {
       assert.equal(err, null);
-
       // return the result
       return callback(null, newNo);
     });
   });
 }
 
+// 7. 지도 정보 수정  
+const editmap = function (db, data, callback) {
+  //get udgmap collection
+  var collection = db.collection('udgmap');
+
+  collection.updateOne({ $and: [{ id: data.id }, { mapno: data.mapno }] },
+    {
+      $set: {
+        region: data.region,
+        mapname: data.mapname,
+        center: data.center,
+        zoom: data.zoom,
+        visibility: data.visibility,
+        markers: data.markers,
+      }
+    }, function (err, rs) {
+      if (err) { console.error(err); }
+      console.log('성공');
+    })
+}
+
+
+//8. 지도 삭제 
 const deletemap = function (db, no, callback) {
   // get udbmap collection
   var collection = db.collection('udgmap');
@@ -342,6 +180,151 @@ const deletemap = function (db, no, callback) {
     return callback(null, result);
   });
 }  
+
+  
+//9. followmap.do : add a map to the user's follow field
+//9-1: 팔로우하는 지도 번호를 유저 정보에 추가 
+const followmap_add = function (db, id, c_id, mapno, callback) {
+  //get user collection
+  var collection = db.collection('user');
+  //update user document
+  collection.updateOne({ id: id }
+      , { $push: { "followmap.mapno": mapno }}, {upsert: true} , function (err, result) {
+          if (err) {
+              console.error(err);
+          } else {
+              console.log('follow add 성공 ')
+              followcnt_inc(db, c_id, mapno); //cnt_follow increase by 1
+          }
+      });
+}
+
+//9-2: 팔로우한 지도의 팔로우 카운트 +1 
+const followcnt_inc = function (db, id, mapno, callback) {
+  //get udgmap collection
+  var collection = db.collection('udgmap');
+  //cnt_follow +1
+  collection.updateOne({ $and: [{ id: id }, { mapno: mapno }] }, { $inc: { cnt_follow: 1 } }, function (err, result) {
+      if (err) {
+          console.error(err);
+      } else {
+          console.log('increased cnt_follow by 1');
+      }
+  });
+}
+  
+  
+//10. 해당 좌표 인근 300미터 내의 지도 찾기, 팔로우가 높은 순으로 찾는다
+const searchmaps = function (db, x, y, callback) {
+    // get udgmap collection 
+    var collection = db.collection('udgmap');
+    // find shared maps at the point of [x,y]
+    collection.createIndex({ center: "2dsphere" }, function (err, result) {
+        if (err) {
+            console.error(err);
+            //
+        } else {
+            console.log("성공");
+            collection.find({
+                $and: [{
+                    center: {
+                        $near: {
+                            $geometry: { type: 'Point', coordinates: [y, x] }, //위도, 경도 순으로 들어온 좌표를 경도, 위도순으로 find
+                            $maxDistance: 300 //해당 좌표에서 300미터 이내에 있는 지점 찾기
+                        }
+                    }
+                },
+                { visibility: true }] // 공개된 지도만 찾아온다 
+            })
+                .sort({ cnt_follow: -1 })//팔로우 수가 많은 순서대로
+                .toArray(function (err, foundmaps) {
+                    if (err) {
+                        console.error(err)
+                    } else {
+                        console.log("found maps: ")
+                        console.log(util.inspect(foundmaps, { depth: 5 }));
+                        return callback(null, foundmaps);
+                    }
+                });
+        }
+    });
+}
+  
+//11. 전체 지도 중 공개되어 있는 지도를 리스트로 받기 
+const allmaps = function(db, callback) {
+    // get udgmap collection 
+    var collection = db.collection('udgmap');
+    // find maps whose 'visibility' field is true
+    collection.find({visibility: true}).toArray(function(err, allmaps) {
+        if (err){
+            console.error(err);
+          } else {
+            console.log("allmaps :");
+            console.log(util.inspect(allmaps,{depth:5}));
+            // return the result
+            return callback(null, allmaps);
+          }
+    });
+  }
+  
+//12. 내가 만든 지도 찾기 
+const mymaps = function (db, id, callback) {
+  // get udgmap collection 
+  var collection = db.collection('udgmap');
+  // find my maps by id
+  collection.find({ id: id }).toArray(function (err, mymaps) {
+    if (err) {
+      console.error(err);
+    } else {
+      console.log("mymaps :");
+      console.log(util.inspect(mymaps, { depth: 5 }));
+      // return the result
+      return callback(null, mymaps);
+    }
+  });
+}
+  
+//13. 팔로우 중인 지도 번호 리스트 
+const followmaps = function (db, id, callback) {
+  // get user collection 
+  let collection = db.collection('user');
+  // find following maps by id
+  try {
+    collection.findOne({ id: id }, { projection: { _id: 0, followmap: 1 } })
+      .then((result) => { //{ followmap: { mapno: [ 4, 4 ] } }
+        console.log('성공')
+        nums = Array.from(new Set(result.followmap.mapno)); // 중복제거  
+        console.log(nums, typeof nums);
+        collection = db.collection('udgmap'); // udgmap 으로 collection switch
+        collection.find({ mapno: { $all: nums } }).toArray(function (err, followmaps) {
+          if (err) { console.error(err) }
+          console.log(util.inspect(followmaps, { depth: 5 }))
+          return callback(null, followmaps);
+        })
+      })
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+//14. 지도 상세보기 
+const detailmap = function (db, mapno, callback) {
+  // get udgmap collection 
+  var collection = db.collection('udgmap');
+  // find a map by id, dname, dcenter
+  collection.find({ mapno: mapno }).toArray(function (err, mapdetail) {
+      if (err) {
+          console.error(err);
+      } else {
+          console.log("mapdetail :", util.inspect(mapdetail, { depth: 5 }));
+          // return the result
+          return callback(null, mapdetail);
+      }
+  });
+}
+
+
+
 
 var server = http.createServer(function (req, res) {   //create web server
     var _url = req.url;
@@ -548,34 +531,77 @@ var server = http.createServer(function (req, res) {   //create web server
         });
       }
     }
-    else if (_url.startsWith("/login.do")) {
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        console.log(query.id,query.pw)
-        signin(db,query.id,query.pw,function(err,user){
-            if(err){
-                console.log("f")
-            }
-            console.log(user[0]);
-            session={
-                        cookieName: 'mySession',
-                        secret: user[0].id,
-                        duration: 24 * 60 * 60 * 1000, 
-                        activeDuration: 1000 * 60 * 5,
-                        id : user[0].id,
-                        pw : user[0].pw,
-                        email : user[0].email
-                    }
-
-            console.log(session.id)
-            res.end(user[0] + "");
-        });
+    else if (_url.startsWith("/signin.do")) {
+      let body;
+      var userinfo;
+      if(req.method ==='POST'){
+          req.on('data', data =>{
+              body = data.toString();
+              console.log("로그인",body)
+          });
+          req.on('end', () =>{
+              userinfo = JSON.parse(body);
+              signin(db, userinfo.id, userinfo.pw, function(err, user){
+                  if(err){
+                      console.log(err)
+                  }
+                  date = new Date(Date.now() + 24*60*60*1000);
+                  date = date.toUTCString();
+                  //쿠키가 하루동안 지속되도록 함 
+                  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8',
+                                       'Set-Cookie' : ['id='+user[0].id+';Expires='+date
+                                       ,'pw='+user[0].pw+';Expires='+date
+                                       , 'email='+user[0].email+';Expires='+date] });
+                  res.end(JSON.stringify(user[0]));
+              })
+          })
+      }
     }
+    else if (_url.startsWith("/signout.do")){
+      let body;
+      var userinfo;
+      if (req.method === 'POST') {
+          req.on('data', data => {
+              body = data.toString();
+              console.log('로그아웃', body)
+          });
+          req.on('end', () => {
+              userinfo = JSON.parse(body);
+              now = new Date(Date.now());
+              now = now.toUTCString(); // 해당 쿠키를 즉시 삭제함
+              res.setHeader('Set-Cookie',[
+                  'id='+userinfo.id+';Expires='+now
+                  , 'pw='+userinfo.pw+';Expires='+now
+                  , 'email='+userinfo.email+';Expires='+now
+              ]);
+              res.end('logout성공?');
+          });
+      }
+  } 
     else if (_url.startsWith("/followmap.do")) {
-
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.write('<html><h1>지도 팔로우 스크립트</h1><br/></html>', 'utf-8');
-        res.end();
-
+      let body;
+      var post;
+      if (req.method === 'POST') {
+          req.on('data', data => {
+              body = data.toString();
+          });
+          req.on('end', () => {
+              post = JSON.parse(body);
+              id = post.id;
+              c_id = post.c_id;
+              mapno = post.mapno;
+              console.log("followmap.do here!!!!==========",post);
+              followmap_add(db, id, c_id, mapno, function(err, result){
+                  //var result = JSON.stringify({result : result})
+                  // console.log(result);
+                  if(err){
+                      console.error(err);
+                  }
+                  console.log(result);
+                  res.end(result); // 브라우저로 전송
+              });
+          });
+      }
     }
     //지도 검색
     else if (_url.startsWith("/searchmap.do")) {
@@ -603,6 +629,24 @@ var server = http.createServer(function (req, res) {   //create web server
           res.end(data, 'utf-8'); // 브라우저로 전송
       });
     }
+    else if (_url.startsWith("/detailmap.go")) {
+      fs.readFile(__dirname + '/detailmap.html', (err, data) => { // 파일 읽는 메소드
+          if (err) {
+              return console.error(err); // 에러 발생시 에러 기록하고 종료
+          }
+          res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'
+                              , 'mapno': query.mapno})
+          res.end(data, 'utf-8'); // 브라우저로 전송
+      });
+  }
+  else if(_url.startsWith("/detailmap.do")){
+      
+      console.log('here we are with '+ query.mapno)
+      detailmap(db, Number(query.mapno), function(err, mapdetail){
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.end(JSON.stringify(mapdetail[0]));
+      })
+  }
     // 전체 회원 목록
     else if (_url.startsWith("/userlist.do")) {
       findAllUser(db, function (err, result) {

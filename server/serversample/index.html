@@ -27,211 +27,255 @@
   <!-- css -->
   <link rel="stylesheet" type="text/css" href="css/mycss.css">
 
-  
+  <script>
+    function ReadCookie() {
+      var allcookies = document.cookie;
+      console.log("모든쿠키값 : " + allcookies);
+    }
+    function getCookie(name) {
+      var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+      return v ? v[2] : 'non-user';
+    }
+  </script>
 
   <script>
-      var app = angular.module("myApp", []);
-      app.controller("myCtrl", function ($scope, $http) {
-          
-        $scope.mapList;
+    var app = angular.module("myApp", []);
+    app.controller("myCtrl", function ($scope, $http) {
 
-        $http({
-          method: 'GET', // HTTP 통신 방법
-          url: "/mainpage.do", // 통신 할 URL
-          timeout: 600000 // 1000 = 1초
-        }).then(function successCallBack(response) {
-          console.log("Success");
-          $scope.mapList = response.data.allmap;
-          console.log($scope.mapList)
-        }, function errorCallback(error) {
-          console.log("Error" + error);
-        });
+      $scope.mapList;
 
-        $("#search-input").keypress(function(event){
-          var keycode = (event.keyCode ? event.keyCode : event.which);
-          if (keycode == '13'){
-            $.ajax({
-              url: "https://maps.googleapis.com/maps/api/geocode/xml?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&address="+$("#search-input").val(),
-              success: function(data) {
-                var location = data.getElementsByTagName("location")[0];
-                var lat = location.getElementsByTagName("lat")[0].textContent;
-                var lng = location.getElementsByTagName("lng")[0].textContent;
-                $http({
-                  method: 'GET', // HTTP 통신 방법
-                  url: "/searchmap.do", // 통신 할 URL
-                  timeout: 600000, // 1000 = 1초
-                  params: {
-                    lat: lat,
-                    lng: lng
-                  }
-                }).then(function successCallBack(response) {
-                  $scope.mapList = response.data.searchedMap;
-                }, function errorCallback(error) {
-                  console.log("Error" + error);
-                });
-              }
-            });
-          }
-        });
+      $http({
+        method: 'GET', // HTTP 통신 방법
+        url: "/mainpage.do", // 통신 할 URL
+        timeout: 600000 // 1000 = 1초
+      }).then(function successCallBack(response) {
+        $scope.mapList = response.data.allmap;
+        console.log($scope.mapList)
+      }, function errorCallback(error) {
+        console.log("Error" + error);
       });
-        
-        
+
+      $("#search-input").keypress(function (event) {
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if (keycode == '13') {
+          $.ajax({
+            url: "https://maps.googleapis.com/maps/api/geocode/xml?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&address=" + $("#search-input").val(),
+            success: function (data) {
+              var location = data.getElementsByTagName("location")[0];
+              var lat = location.getElementsByTagName("lat")[0].textContent;
+              var lng = location.getElementsByTagName("lng")[0].textContent;
+              $http({
+                method: 'GET', // HTTP 통신 방법
+                url: "/searchmap.do", // 통신 할 URL
+                timeout: 600000, // 1000 = 1초
+                params: {
+                  lat: lat,
+                  lng: lng
+                }
+              }).then(function successCallBack(response) {
+                $scope.mapList = response.data.searchedMap;
+              }, function errorCallback(error) {
+                console.log("Error" + error);
+              });
+            }
+          });
+        }
+      });
+
+      $scope.Gotodetail = function (mapno) {
+        window.location.href = '/detailmap.go?mapno=' + mapno;
+      }
+
+      $scope.signin = function () {
+        var signin_info = {
+          id: $("#form-id").val(),
+          pw: $("#form-pw").val()
+        }
+        $http({
+          method: 'POST',
+          url: '/signin.do',
+          timeout: 600000,
+          data: signin_info,
+        }).then(function successCallBack(response) {
+          ReadCookie();
+        }), function errorCallback(error) {
+        }
+      }
+      $scope.signout = function () {
+        // alert('signout')
+        var signout_info = {
+          id: getCookie('id'),
+          pw: getCookie('pw'),
+          email: getCookie('email')
+        }
+        $http({
+          method: 'POST',
+          url: '/signout.do',
+          timeout: 600000,
+          data: signout_info,
+        }).then(function successCallBack(response) {
+          ReadCookie();
+        }), function errorCallback(error) {
+        }
+      }
+
+    });
+
+
   </script>
 
   <style>
-    
-#search-input::-webkit-input-placeholder {
-    text-align:center;
-}
+    #search-input::-webkit-input-placeholder {
+      text-align: center;
+    }
 
-.thumb-wrapper {
-	width: 100%;
-  height: 0;
-	position: relative;
-  float: left;
-  padding-bottom: 100%;
-}
+    .thumb-wrapper {
+      width: 100%;
+      height: 0;
+      position: relative;
+      float: left;
+      padding-bottom: 100%;
+    }
 
-.thumb-wrapper::before {
-	display: block;
-	content: "";
-	height: 100%;
-	padding-top: 100%;
-}
+    .thumb-wrapper::before {
+      display: block;
+      content: "";
+      height: 100%;
+      padding-top: 100%;
+    }
 
-.thumb-container {
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 100%;
-	height: 100%;
-	padding: 0px 0px 0px 0px;
-	-moz-box-sizing: border-box;
-	-webkit-box-sizing: border-box;
-	box-sizing: border-box
-}
+    .thumb-container {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      padding: 0px 0px 0px 0px;
+      -moz-box-sizing: border-box;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box
+    }
 
-.thumb-content {
-	position: relative;
-	width: 100%;
-	height: 100%;
-	cursor: pointer;
-  overflow: hidden;
-  background: linear-gradient(-45deg, #5e2aff, #207ce5);
-}
+    .thumb-content {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      overflow: hidden;
+      background: linear-gradient(-45deg, #5e2aff, #207ce5);
+    }
 
-.thumb-content:hover .thumb-img {
-	-moz-transform: translate(-50%, -50%) scale(1.1, 1.1);
-	-ms-transform: translate(-50%, -50%) scale(1.1, 1.1);
-	-webkit-transform: translate(-50%, -50%) scale(1.1, 1.1);
-	transform: translate(-50%, -50%) scale(1.1, 1.1);
-}
+    .thumb-content:hover .thumb-img {
+      -moz-transform: translate(-50%, -50%) scale(1.1, 1.1);
+      -ms-transform: translate(-50%, -50%) scale(1.1, 1.1);
+      -webkit-transform: translate(-50%, -50%) scale(1.1, 1.1);
+      transform: translate(-50%, -50%) scale(1.1, 1.1);
+    }
 
-.thumb-content:hover .thumb-img-overlay {
-	background-color: rgba(0, 0, 0, 0.7);
-}
+    .thumb-content:hover .thumb-img-overlay {
+      background-color: rgba(0, 0, 0, 0.7);
+    }
 
-.thumb-box-content {
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 100%;
-	height: 100%;
-}
+    .thumb-box-content {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
 
-.thumb-photo {
-	overflow: hidden;
-}
+    .thumb-photo {
+      overflow: hidden;
+    }
 
-.thumb-img {
-	position: absolute;
-	left: 50%;
-	top: 50%;
-	min-width: 100.5%;
-	min-height: 100.5%;
-	height: 100%;
-	width: auto;
-	-moz-transform: translate(-50%, -50%);
-	-ms-transform: translate(-50%, -50%);
-	-webkit-transform: translate(-50%, -50%);
-	transform: translate(-50%, -50%);
-	-moz-transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
-	-o-transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
-	-webkit-transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
-	transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
-}
+    .thumb-img {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      min-width: 100.5%;
+      min-height: 100.5%;
+      height: 100%;
+      width: auto;
+      -moz-transform: translate(-50%, -50%);
+      -ms-transform: translate(-50%, -50%);
+      -webkit-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+      -moz-transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+      -o-transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+      -webkit-transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+      transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
 
-.thumb-img-landscape {
-	width: 101.467%;
-	height: auto;
-}
+    .thumb-img-landscape {
+      width: 101.467%;
+      height: auto;
+    }
 
-.thumb-img-overlay {
-	background-color: rgba(0, 0, 0, 0.4);
-	-moz-transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-	-o-transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-	-webkit-transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-	transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94)
-}
+    .thumb-img-overlay {
+      background-color: rgba(0, 0, 0, 0.4);
+      -moz-transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      -o-transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      -webkit-transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+    }
 
-.thumb-infos {
-  font-size: 12pt;
-	top: 50%;
-	height: auto;
-	padding: 0 15px;
-	-moz-box-sizing: border-box;
-	-webkit-box-sizing: border-box;
-	box-sizing: border-box;
-	color: #fff;
-	text-align: center;
-	-moz-transform: translateY(-50%);
-	-ms-transform: translateY(-50%);
-	-webkit-transform: translateY(-50%);
-	transform: translateY(-50%);
-}
+    .thumb-infos {
+      font-size: 12pt;
+      top: 50%;
+      height: auto;
+      padding: 0 15px;
+      -moz-box-sizing: border-box;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+      color: #fff;
+      text-align: center;
+      -moz-transform: translateY(-50%);
+      -ms-transform: translateY(-50%);
+      -webkit-transform: translateY(-50%);
+      transform: translateY(-50%);
+    }
 
-.modal {
-  text-align: center;
-}
+    .modal {
+      text-align: center;
+    }
 
-.modal-dialog {
-  display: inline-block;
-  text-align: left;
-  vertical-align: middle; 
-  width: 90%;
-}
+    .modal-dialog {
+      display: inline-block;
+      text-align: left;
+      vertical-align: middle;
+      width: 90%;
+    }
 
-@media screen and (min-width: 768px) { 
-  .thumb-wrapper {
-    padding-bottom: 100%;
-  }
+    @media screen and (min-width: 768px) {
+      .thumb-wrapper {
+        padding-bottom: 100%;
+      }
 
-  .thumb-infos {
-    font-size: 16pt;
-  }
+      .thumb-infos {
+        font-size: 16pt;
+      }
 
-  .modal:before {
-    display: inline-block;
-    vertical-align: middle;
-    content: " ";
-    height: 100%;
-  }
+      .modal:before {
+        display: inline-block;
+        vertical-align: middle;
+        content: " ";
+        height: 100%;
+      }
 
-  .modal-dialog:before {
-    width: 40%;
-  }
-}
+      .modal-dialog:before {
+        width: 40%;
+      }
+    }
 
-@media screen and (max-width: 574px) {
-  .thumb-wrapper {
-    padding-bottom: 70%;
-  }
+    @media screen and (max-width: 574px) {
+      .thumb-wrapper {
+        padding-bottom: 70%;
+      }
 
-  .thumb-infos {
-    font-size: 20pt;
-  }
-}
-
+      .thumb-infos {
+        font-size: 20pt;
+      }
+    }
   </style>
 </head>
 
@@ -253,10 +297,10 @@
           <span class="input-group-addon fas fa-search fa-sm"
             style="color:grey; position: relative; left:15px; z-index:1;">
           </span>
-            <input type="text" class="form-control" id="search-input" placeholder="검색" aria-label="Search"
-              spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"
-              aria-owns="algolia-autocomplete-listbox-0" dir="auto" value=""
-              style="position: relative; right:7px; padding:3px 10px 3px 26px;">
+          <input type="text" class="form-control" id="search-input" placeholder="검색" aria-label="Search"
+            spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"
+            aria-owns="algolia-autocomplete-listbox-0" dir="auto" value=""
+            style="position: relative; right:7px; padding:3px 10px 3px 26px;">
         </div>
       </div>
 
@@ -294,9 +338,10 @@
 
             <div class="thumb-wrapper">
               <div class="thumb-container">
-                <div class="thumb-content">
+                <div class="thumb-content" ng-click="Gotodetail(map.mapno)">
                   <div class="thumb-photo thumb-box-content">
-                      <img src="https://scontent-icn1-1.cdninstagram.com/vp/bf095ae7e12f3d98ae26af50037f5bec/5DBA8C74/t51.2885-15/e35/57564811_146986786352360_4166844949660890059_n.jpg?_nc_ht=scontent-icn1-1.cdninstagram.com"
+                    <img
+                      src="https://scontent-icn1-1.cdninstagram.com/vp/bf095ae7e12f3d98ae26af50037f5bec/5DBA8C74/t51.2885-15/e35/57564811_146986786352360_4166844949660890059_n.jpg?_nc_ht=scontent-icn1-1.cdninstagram.com"
                       style="width: 100%; height: 100%;">
                   </div>
                   <div class="thumb-img-overlay thumb-box-content"></div>
@@ -355,7 +400,13 @@
         <div class="modal-footer border-top-0 pt-0">
           <div class="container-fluid">
             <div class="row d-flex justify-content-center pb-3">
-              <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal" id = "loginbutton">로그인</button>
+              <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal"
+                ng-click="signin()">로그인</button>
+            </div>
+            <div class="row d-flex justify-content-center pb-3">
+              <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal"
+                ng-click="signout()">로그아웃</button>
+              <!--id = "logoutbutton"-->
             </div>
             <div class="row d-flex justify-content-center">
               <a href="#">비밀번호를 잊어버리셨나요?</a><br>
@@ -378,32 +429,6 @@
       </div>
     </div>
   </footer>
-
-  <script>
-
-      $("#loginbutton").click(function(){
-        $.ajax({
-          url : "/login.do?id=" + $("#form-id").val() + "&pw=" + $("#form-pw").val(),
-          type: 'GET',
-          success: function(result) {
-            if (result) {
-              ReadCookie();
-              console.log(JSON.parse(result))
-            } else {
-              alert("??")
-            }
-          }
-         
-        });
-      });
-    
-      function ReadCookie() {
-          var allcookies = document.cookie;
-          alert("모든쿠키값 : " + allcookies);
-      }
-
-
-   </script>
 </body>
 
 </html>
