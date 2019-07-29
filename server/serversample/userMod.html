@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" ng-app="myApp">
 
 <head>
   <meta charset="UTF-8">
@@ -29,72 +29,42 @@
 
   <script>
     var app = angular.module("myApp", []);
-    app.controller("myCtrl", function ($scope) {
-      $scope.userList = [{
-          id: 'yunki',
-          pw: '1111',
-          name: '조윤기',
-          region: '연신내',
-          email: 'aaa@aaa.com'
-        },
-        {
-          id: 'sangjun1230',
-          pw: '2222',
-          name: '이상준',
-          region: '장한평',
-          email: 'bbb@bbb.com'
-        },
-        {
-          id: 'nang',
-          pw: '3333',
-          name: '이낭경',
-          region: '공덕',
-          email: 'ccc@ccc.com'
-        },
-        {
-          id: 'sungjun',
-          pw: '4444',
-          name: '조윤기',
-          region: '서초구',
-          email: 'ddd@ddd.com'
-        },
-        {
-          id: 'park',
-          pw: '5555',
-          name: '박개벙',
-          region: '어린이대공원',
-          email: 'eee@eee.com'
-        }
-      ];
-
-      $scope.remove = function (id) {
-        if (!id) return;
-
-        var idx = -1;
-        for (var i = 0; i < $scope.userList.length; i++) {
-          if ($scope.userList[i].id === id) {
-            idx = i;
-            break;
-          }
-        }
-
-        if (idx === -1) return;
-        $scope.userList.splice(idx, 1);
+    app.controller("myCtrl", function ($scope, $http) {
+      $scope.user = {
+        id: 'yunki',
+        pw: '1111',
+        email: 'aaa@naver.com'
       }
 
-      $scope.userForm = {};
+      $scope.userForm = {
+        id: 'yunki',
+        pw: '1111',
+        email: 'aaa@naver.com'
+      };
 
-      $scope.addUser = function () {
-        var newUser = {
-          id: $scope.userForm.id,
-          pw: $scope.userForm.pw,
-          name: $scope.userForm.name,
-          region: $scope.userForm.region,
-          email: $scope.userForm.email
-        };
+      $scope.modifyUser = function () {
+        var mod = confirm("회원정보를 수정하시겠습니까?");
 
-        $scope.userList.push(newUser);
-
+        if (mod == true) {
+          var modUser = {
+            id: $scope.userForm.id,
+            pw: $scope.userForm.pw,
+            email: $scope.userForm.email
+          }
+  
+          $http({
+            method: 'POST', // HTTP 통신 방법
+            url: "/usermod.do", // 통신 할 URL
+            timeout: 600000, // 1000 = 1초
+            data: { // 보낼 데이터
+              modUser: modUser
+            }
+          }).then(function successCallBack(response) {
+            console.log("Success: modify user");
+          }, function errorCallback(error) {
+            console.log("Error" + error);
+          });
+        }
       }
     });
   </script>
@@ -115,7 +85,7 @@
   </script>
 </head>
 
-<body>
+<body ng-controller="myCtrl">
 
   <div class="container-fluid p-0 m-0">
     <!-- header -->
@@ -190,13 +160,11 @@
           </div>
           <div class="row d-flex justify-content-center">
             <div class="col-6">
-              <form class="form-group" ng-repeat="item in userList">
-                <input type="text" class="form-control mb-2" ng-model="userForm.id" ng-readonly="true" value={{item.id}}
-                  data-ng-show="$first">
-                <input type="password" class="form-control mb-2" ng-model="userForm.pw" ng-readonly="true"
-                  value={{item.pw}}>
-                <input type="text" class="form-control mb-2" placeholder="수정 이름 작성" ng-model="userForm.name">
-                <input type="text" class="form-control mb-2" placeholder="수정 이메일 작성" ng-model="userForm.email">
+              <form class="form-group" ng-submit="modifyUser()">
+                <input type="text" class="form-control mb-2" placeholder="아이디" ng-model="userForm.id" ng-readonly="true">
+                <input type="text" class="form-control mb-2" placeholder="비밀번호" ng-model="userForm.pw">
+                <input type="text" class="form-control mb-2" placeholder="비밀번호 확인">
+                <input type="text" class="form-control mb-2" placeholder="이메일" ng-model="userForm.email">
 
                 <div class="row">
                   <div class="col-6 pr-2">
@@ -212,15 +180,7 @@
         </div>
       </div>
     </div>
-    <script>
-      $('#user_mod').click(function () {
-        var mod_check = confirm("회원정보를 수정하시겠습니까?");
-
-        if (mod_check == true) {
-          Save();
-        }
-      });
-    </script>
+   
     <!-- modal -->
     <div class="modal fade" id="signinModal" tabindex="-1" role="dialog" aria-labelledby="signinModalLabel"
       aria-hidden="true">

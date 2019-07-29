@@ -67,11 +67,15 @@ const signin = function(db,id,pw,callback) {
 }
   
   //2. signup.do : insert new user info when signing up
-const signup = function(db, id, pw, email, callback){
+  const signup = function(db, data, callback){
     //get user collection
     var collection = db.collection('user');
     //insert new userinfo
-    collection.insertOne({id:id, pw:pw, email:email}).then(function(err,result){
+    collection.insertOne({
+      id: data.id, 
+      pw: data.pw, 
+      email: data.email
+    }).then(function(err,result){
       //assert.equal(err,null);
       //assert.equal(1,results.result.n);
       //assert.equal(1,results.ops.length);
@@ -79,8 +83,66 @@ const signup = function(db, id, pw, email, callback){
       callback(result);
     });
   }
+
+  const deleteUser = function (db, data, callback) {
+    // get udbmap collection
+    var collection = db.collection('user');
+    collection.deleteMany({
+      id: data.id,
+      pw: data.pw
+    }, function (err, result) {
+      assert.equal(err, null);
+
+      // return the result
+      return callback(null, result);
+    });
+  }
+
+  const updateUser = function (db, data, callback) {
+    var collection = db.collection('user');
+    collection.updateOne({id: data.id}, {
+      $set: {
+        pw: data.pw,
+        email: data.email
+      }
+    }, function (err, result) {
+      assert.equal(err, null);
+      return callback(null, result);
+    });
+  }
   
-  //3. makemap.do : 
+  const findAllUser = function (db, callback) {
+    var collection = db.collection('user');
+  
+    collection.find().toArray(function (err, result) {
+      console.log(result);
+      return callback(null, result);
+    });
+  }
+
+  const findUserId = function (db, data, callback) {
+    var collection = db.collection('user');
+  
+    collection.find({
+      id: data.id
+    }).toArray(function (err, result) {
+      console.log(result);
+      return callback(null, result);
+    });
+  }
+
+  const findUserEmail = function (db, data, callback) {
+    var collection = db.collection('user');
+  
+    collection.find({
+      id: data.email
+    }).toArray(function (err, result) {
+      console.log(result);
+      return callback(null, result);
+    });
+  }
+
+  //3. addmap.do : 
   //3-1 :make a new map in udgmap collection
   const addmap_udg = function(db,id,dname,x,y,o, callback){
     //get udgmap collection
@@ -104,18 +166,19 @@ const signup = function(db, id, pw, email, callback){
   }
   
 // 4. savemap.do : edit map 
-const editmap = function (db, editedmap, callback) {
+const editmap = function (db, data, callback) {
   //get udgmap collection
   var collection = db.collection('udgmap');
-  collection.updateOne({ $and: [{ id: editedmap.id }, { mapno: editedmap.mapno }] }
-    , {
+
+  collection.updateOne({ $and: [{ id: data.id }, { mapno: data.mapno }] },
+    {
       $set: {
-        region: editmap.region,
-        mapname: editedmap.mapname,
-        center: [editedmap.center[1], editedmap.center[0]],
-        zoom: editedmap.zoom,
-        visibility: editedmap.visibility,
-        markers: editedmap.markers,
+        region: data.region,
+        mapname: data.mapname,
+        center: data.center,
+        zoom: data.zoom,
+        visibility: data.visibility,
+        markers: data.markers,
       }
     }, function (err, rs) {
       if (err) { console.error(err); }
@@ -126,7 +189,7 @@ const editmap = function (db, editedmap, callback) {
   /*
   var markers ={"c_id" : "aa", "center":{lat: 37.484780, lng: 127.016129} 
           , "mapname" : "안녕" 
-          , "mks" : [{"title" : "1","lat" : 37.484781,"lng" : 127.0162, "desc" : {"con" : "no.1"} }
+          , "mks" : [   {"title" : "1","lat" : 37.484781,"lng" : 127.0162, "desc" : {"con" : "no.1"} }
           ,{"title" : "2","lat" : 37.484800,"lng" : 127.0163, "desc" : {"con" : "no.2"} }
           ,{"title" : "3","lat" : 37.484789,"lng" : 127.0164, "desc" : {"con" : "no.3"} }]};
   */
@@ -242,29 +305,29 @@ const editmap = function (db, editedmap, callback) {
     });
   }
 
-const makemap = function (db, data, callback) {
+const addmap = function (db, data, callback) {
   // get udgmap collection 
   var collection = db.collection('udgmap');
   var max;
-  console.log("==================== makemap ====================");
   collection.find().sort({ 'mapno': -1 }).limit(1).toArray(function (err, result) {
     max = result[0]['mapno'];
+    newNo = Number(max + 1);
 
     collection.insertOne({
-      mapno: Number(max + 1),
+      mapno: newNo,
       id: data.id,
       region: data.region,
       mapname: data.mapname,
       center: data.center,
-      zoom: Number(data.zoom),
+      zoom: data.zoom,
       visibility: data.visibility,
-      cnt_follow: Number(data.cnt_follow),
+      cnt_follow: data.cnt_follow,
       markers: data.markers
     }, function (err, result) {
       assert.equal(err, null);
 
       // return the result
-      return callback(null, result);
+      return callback(null, newNo);
     });
   });
 }
@@ -272,8 +335,7 @@ const makemap = function (db, data, callback) {
 const deletemap = function (db, no, callback) {
   // get udbmap collection
   var collection = db.collection('udgmap');
-  console.log("==================== deletemap ====================");
-  collection.deleteMany({ mapno: Number(no) }, function (err, result) {
+  collection.deleteMany({ mapno: no }, function (err, result) {
     assert.equal(err, null);
 
     // return the result
@@ -322,38 +384,37 @@ var server = http.createServer(function (req, res) {   //create web server
     }
     else if (_url.startsWith('/mymap.do')) { //check the URL of the current request
         mymaps(db, query.id, function(err, mymaps){
-            var result = JSON.stringify({mymaps : mymaps})
+            var result = JSON.stringify({ mymaps : mymaps })
             res.end(result, 'utf-8'); // 브라우저로 전송
         });
         // res.sendDate(data);
     }
-    else if (_url.startsWith("/makemap.do")) {
+    else if (_url.startsWith("/addmap.do")) {
       let body;
-      var post;
       if (req.method === 'POST') {
         req.on('data', data => {
           body = data.toString();
         });
         req.on('end', () => {
-          post = JSON.parse(body);
+          var post = JSON.parse(body);
           console.log(post);
-          makemap(db, post.newMap, function (err, result) {
+          addmap(db, post.newMap, function (err, result) {
             var result = JSON.stringify({ result: result })
             console.log("결과: " + result);
+            res.end(result, 'utf-8');
           });
         });
       }
-      res.end('ok'); // 브라우저로 전송
+      // res.end('ok'); // 브라우저로 전송
     }
     else if (_url.startsWith("/deletemap.do")) {
       let body;
-      var post;
       if (req.method === 'POST') {
         req.on('data', data => {
           body = data.toString();
         });
         req.on('end', () => {
-          post = JSON.parse(body);
+          var post = JSON.parse(body);
           console.log(post);
           deletemap(db, post.mapno, function (err, result) {
             var result = JSON.stringify({ result: result })
@@ -364,11 +425,21 @@ var server = http.createServer(function (req, res) {   //create web server
       res.end('ok'); // 브라우저로 전송
     }
     else if (_url.startsWith("/savemap.do")) {
-
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.write('<html><h1>지도 저장 스크립트</h1><br/></html>', 'utf-8');
-        res.end();
-
+      let body;
+      if (req.method === 'POST') {
+        req.on('data', data => {
+          body = data.toString();
+        });
+        req.on('end', () => {
+          var post = JSON.parse(body);
+          console.log(post);
+          editmap(db, post.saveMap, function (err, result) {
+            var result = JSON.stringify({ result: result })
+            console.log("결과: " + result);
+          });
+        });
+      }
+      res.end('ok'); // 브라우저로 전송
     }
     else if (_url.startsWith("/sharemap.do")) {
 
@@ -389,14 +460,93 @@ var server = http.createServer(function (req, res) {   //create web server
         });
     }
     else if (_url.startsWith("/signup.go")) {
+        // set response header
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-
+        // set response content    
         fs.readFile(__dirname + '/signup.html', (err, data) => { // 파일 읽는 메소드
             if (err) {
-                return console.error(err); // 에러 발생시 에러 기록하고 종료
-            }
+                console.error(err); // 에러 발생시 에러 기록하고 종료
+            } 
             res.end(data, 'utf-8'); // 브라우저로 전송
         });
+    }
+    else if (_url.startsWith("/signup.do")) {
+      let body;
+      if (req.method === 'POST') {
+        req.on('data', data => {
+          body = data.toString();
+        });
+        req.on('end', () => {
+          var post = JSON.parse(body);
+          console.log(post);
+          signup(db, post.newUser, function (err, result) {
+            var result = JSON.stringify({ result: result })
+            console.log("결과: " + result);
+          });
+        });
+      }
+      res.end('ok'); // 브라우저로 전송
+    }
+    else if (_url.startsWith("/deleteuser.do")) {
+      let body;
+      if (req.method === 'POST') {
+        req.on('data', data => {
+          body = data.toString();
+        });
+        req.on('end', () => {
+          var post = JSON.parse(body);
+          console.log(post);
+          deleteUser(db, post.delUser, function (err, result) {
+            var result = JSON.stringify({ result: result })
+            console.log("결과: " + result);
+          });
+        });
+      }
+      res.end('ok'); // 브라우저로 전송
+    }
+    else if (_url.startsWith("/usermod.go")) {
+      // set response header
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      // set response content    
+      fs.readFile(__dirname + '/userMod.html', (err, data) => { // 파일 읽는 메소드
+        if (err) {
+          console.error(err); // 에러 발생시 에러 기록하고 종료
+        }
+        res.end(data, 'utf-8'); // 브라우저로 전송
+      });
+    }
+    else if (_url.startsWith("/usermod.do")) {
+      let body;
+      if (req.method === 'POST') {
+        req.on('data', data => {
+          body = data.toString();
+        });
+        req.on('end', () => {
+          var post = JSON.parse(body);
+          console.log(post);
+          updateUser(db, post.modUser, function (err, result) {
+            var result = JSON.stringify({ result: result })
+            console.log("결과: " + result);
+          });
+        });
+      }
+      res.end('ok'); // 브라우저로 전송
+    }
+    else if (_url.startsWith("/finduserid.do")) {
+      let body;
+      if (req.method === 'POST') {
+        req.on('data', data => {
+          body = data.toString();
+        });
+        req.on('end', () => {
+          var post = JSON.parse(body);
+          console.log(post);
+          findUserId(db, query.id, function (err, result) {
+            var result = JSON.stringify({ result: result })
+            res.end(result, 'utf-8'); // 브라우저로 전송
+          });
+        });
+      }
     }
     else if (_url.startsWith("/login.do")) {
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -440,89 +590,26 @@ var server = http.createServer(function (req, res) {   //create web server
             var result = JSON.stringify({searchedMap:searchedMap});
             res.end(result,'utf-8'); //브라우저로 전송
           });
-  
-  
     }
-
-    // 전체 회원
-    else if (_url = /^\/users$/i.exec(req.url)) {
-        
-        userService.getUsers(function (error, data) {
-            userList = util.inspect(data, {depth: 5});
-            console.log(userList);
-            console.log("==============전체회원==============");
-
-            fs.readFile(__dirname + '/userlist.html', (err, data) => { // 파일 읽는 메소드
-                if (err) {
-                    return console.error(err); // 에러 발생시 에러 기록하고 종료
-                }
-                res.end(userList, 'utf-8'); // 브라우저로 전송
-            });
-        });
-
-        // mong.userList(mong.db, function(){});
-        
-       /*
-        mong.userList(mong.db, function(error, data) {
-            userList = util.inspect(data, {depth: 5});
-            console.log(userList);
-            console.log("==============전체회원==============");
-
-            fs.readFile(__dirname + '/userlist.html', (err, data) => { // 파일 읽는 메소드
-                if (err) {
-                    return console.error(err); // 에러 발생시 에러 기록하고 종료
-                }
-                res.end(userList, 'utf-8'); // 브라우저로 전송
-            });
-        });
-        */
+    // 전체 회원 목록
+    else if (_url.startsWith("/userlist.go")) {
+      // set response header
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      // set response content    
+      fs.readFile(__dirname + '/userlist.html', (err, data) => { // 파일 읽는 메소드
+          if (err) {
+              console.error(err); // 에러 발생시 에러 기록하고 종료
+          } 
+          res.end(data, 'utf-8'); // 브라우저로 전송
+      });
     }
-
-    // 특정 회원
-    else if (_url = /^\/users\/(\d+)$/i.exec(req.url)) {
-        userService.getUser(_url[1], function (error, data) {
-            userList = util.inspect(data, {depth: 5});
-            console.log(userList);
-            console.log("==============특정회원==============");
-
-            fs.readFile(__dirname + '/userlist.html', (err, data) => { // 파일 읽는 메소드
-                if (err) {
-                    return console.error(err); // 에러 발생시 에러 기록하고 종료
-                }
-                res.end(userList, 'utf-8'); // 브라우저로 전송
-            });
-
-            /*
-            var template = `
-            <!doctype html>
-            <html>
-            <head>
-            <title>테스트</title>
-            </head>
-            <body>
-                <h1>유저 목록</h1><br>
-                ${data}
-            </body>
-            </html>
-            `;
-
-            if (error) {
-                return responder.send500(error, res); // 500오류 전송
-            }
-            if (!data) {
-                return responder.send404(res); // 400오류 전송
-            }
-            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-            res.end(template);
-            return responder.sendJson(data, res); // 200 상태 코드와 함께 데이터 전송
-            */
-        });
+    // 전체 회원 목록
+    else if (_url.startsWith("/userlist.do")) {
+      findAllUser(db, function (err, result) {
+        var result = JSON.stringify({ result: result })
+        res.end(result,'utf-8'); //브라우저로 전송
+      });
     }
-
-
-
-
-
     else {
         // 정적 파일 전송 시도
         res.writeHead(200);
