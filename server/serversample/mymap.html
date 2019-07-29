@@ -508,6 +508,24 @@
       print();
     }
 
+    function regionSearch() {
+      console.log($("#map_region").val());
+      $.ajax({
+        url: "https://maps.googleapis.com/maps/api/geocode/xml?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&address=" + $("#map_region").val(),
+        success: function (data) {
+          var location = data.getElementsByTagName("location")[0];
+          var new_lat = location.getElementsByTagName("lat")[0].textContent;
+          var new_lng = location.getElementsByTagName("lng")[0].textContent;
+
+          var new_center = { lat: parseFloat(new_lat), lng: parseFloat(new_lng) };
+          console.log(new_center);
+          g_map.panTo(new_center);
+          g_map.setZoom(15);
+        }
+      });
+    }
+    
+
     /******************************/
 
     function print() {
@@ -637,7 +655,7 @@
                         <input type="text" class="form-control" placeholder="지역" aria-label="지역" aria-describedby="button-addon"
                           id="map_region">
                         <div class="input-group-append">
-                          <button class="btn btn-sm p-0" type="button" id="button-addon" style="background-color: #adb5bd;">
+                          <button class="btn btn-sm p-0" type="button" id="button-addon" style="background-color: #adb5bd;" onclick="regionSearch()">
                             <i class="fas fa-search fa-sm px-2" style="color: white;"></i>
                           </button>
                         </div>
