@@ -50,7 +50,7 @@
         var app = angular.module("myApp", []);
         app.controller("myCtrl", function ($scope, $http, $sce) {
 
-            $scope.mapdetail;
+            $scope.m_map;
             $scope.mapHtml;
 
             let mapno;
@@ -69,10 +69,10 @@
                     mapno: mapno
                 }
             }).then(function successCallBack(response) {
-                console.log("Success===============", response.data);
-                mapdetail = response.data;
-                var str = "<h3 class='m-0'>" + mapdetail.region + " " + mapdetail.mapname + "</h3>"
-                str += "<span>" + mapdetail.id + "</span>"
+                console.log("Success");
+                m_map = response.data;
+                var str = "<h3 class='m-0'>" + m_map.region + " " + m_map.mapname + "</h3>"
+                str += "<span>" + m_map.id + "</span>"
                 $scope.mapHtml = $sce.trustAsHtml(str);
                 initMap();
             }, function errorCallback(error) {
@@ -84,10 +84,10 @@
             // 지도 팔로우하기 
             $scope.add = function () {
                 alert('add 호출 ')
-                console.log('add function', mapdetail.mapno, mapdetail.id, currentUser)
+                console.log('add function', m_map.mapno, m_map.id, currentUser)
                 var tofollow = {
-                    mapno: mapdetail.mapno,
-                    c_id: mapdetail.id,
+                    mapno: m_map.mapno,
+                    c_id: m_map.id,
                     id: currentUser
                 };
                 // var sendData = $.param(tofollow);
@@ -150,44 +150,56 @@
 
     <script>
         var m_markers; // 몽고와 연동되는 마커
-        var currMap = 0;
 
         var g_map; // 구글맵의 지도
         var g_markers = []; // 구글맵에 올릴 마커
         var currMarker; // 현재 마커를 가리키는 인덱스
-        var move;
 
         function initMap() {
-            //   m_map = m_maps[currMap];
-            m_markers = mapdetail['markers'];
-            move = false;
+            m_markers = m_map['markers'];
             currMarker = -1;
 
-            m_center = { lat: Number(mapdetail['center'][1]), lng: Number(mapdetail['center'][0]) }
+            m_center = { "lat": Number(m_map['center'][1]), "lng": Number(m_map['center'][0]) }
             // 구글맵 지도 생성
             g_map = new google.maps.Map(document.getElementById('udgmap'), {
-                center: { lat: mapdetail['center'][1], lng: mapdetail['center'][0] }, // 지도 중심 좌표
-                zoom: mapdetail['zoom'] // 지도 배율. 숫자가 클 수록 확대됨
+                center: { lat: m_map['center'][1], lng: m_map['center'][0] }, // 지도 중심 좌표
+                zoom: m_map['zoom'] // 지도 배율. 숫자가 클 수록 확대됨
             });
 
+            // 지도 왼쪽 클릭 이벤트
             g_map.addListener('click', function (event) {
                 // g_map.panTo(event.latLng); // 구글맵 중심 이동
-                //console.log("location : " + event.latLng);
                 document.getElementById('location').innerHTML = event.latLng;
-
-
             });
-            // console.log(g_markers)
-            addMongoMarker();// 마커 표시
+
+            var show = true;
+            // 지도 오른쪽 클릭 이벤트
+            g_map.addListener('rightclick', function (event) {
+                // deleteAllMarker();
+                if (show == true) {
+                    for (i in g_markers) {
+                        g_markers[i].description.close(); // 말풍선 닫기
+                    }
+                    setMapOnAll(g_map); // 구글맵 마커 그리기
+                    show = false;
+                } else {
+                    for (i in g_markers) {
+                        g_markers[i].description.open(g_map, g_markers[i]); // 마커에 말풍선 붙이기
+                    }
+                    setMapOnAll(g_map); // 구글맵 마커 그리기
+                    show = true;
+                }
+            });
+
+            mongoToGoogle();// 마커 표시
             g_map.panTo(m_center); // 구글맵 중심 이동
         }
 
         // 몽고 마커를 구글맵 마커에 추가하기
-        function addMongoMarker() {
+        function mongoToGoogle() {
             setMapOnAll(null); // 구글맵 마커 지우기
 
-            m_markers = mapdetail.markers;
-            //console.log(m_markers)
+            m_markers = m_map.markers;
             // 배열에 있는 값을 구글맵 마커 형식으로 변환
             for (i = 0; i < m_markers.length; i++) {
                 // for (i=0; i<m_markers.length; i++) {
@@ -215,17 +227,12 @@
                     pixelOffset: new google.maps.Size(0, -10)
                 });
                 markerCommon(marker); // 마커 공통 메서드 
-                //g_markers.push(marker);
             }
             setMapOnAll(g_map); // 구글맵 마커 그리기
         }
 
         // 마커 전체 그리기
         function setMapOnAll(map) {
-            /*
-            for (i = 0 ; i< g_markers.length ; i++) {
-                g_markers[i].setMap(map); // 구글맵 마커 그리기
-            }*/
             for (i in g_markers) {
                 if (i == currMarker) { // 현재 마커는 파란색
                     g_markers[i].label.color = 'dodgerblue';
@@ -240,9 +247,14 @@
             marker.description.open(g_map, marker); // 마커에 말풍선 붙이기
             // 마커 왼쪽 클릭 이벤트
             marker.addListener('click', function (event) {
+                setMapOnAll(null); // 구글맵 마커 지우기
+
+                currMarker = Number(marker.title)-1;
                 $('#marker_desc').val(marker.description.content); // 마커 설명을 입력폼에 넣기
+
                 // 설명 on
                 marker.description.open(g_map, marker); // 마커에 말풍선 붙이기
+                setMapOnAll(g_map); // 구글맵 마커 그리기
             });
 
             // 마커 오른쪽 클릭 이벤트
