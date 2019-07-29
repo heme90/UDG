@@ -48,9 +48,10 @@
 
     <script>
         var app = angular.module("myApp", []);
-        app.controller("myCtrl", function ($scope, $http) {
+        app.controller("myCtrl", function ($scope, $http, $sce) {
 
             $scope.mapdetail;
+            $scope.mapHtml;
 
             let mapno;
             var req = new XMLHttpRequest();
@@ -67,14 +68,12 @@
                 params: { // 보낼 변수
                     mapno: mapno
                 }
-                // responseType: 'json',  // 데이터 타입
-                // header: {
-                //   "Content-Type": "application/json; charset=utf-8",
-                //   "Accept": "application/json"
-                // }
             }).then(function successCallBack(response) {
                 console.log("Success===============", response.data);
                 mapdetail = response.data;
+                var str = "<h3 class='m-0'>" + mapdetail.region + " " + mapdetail.mapname + "</h3>"
+                str += "<span>" + mapdetail.id + "</span>"
+                $scope.mapHtml = $sce.trustAsHtml(str);
                 initMap();
             }, function errorCallback(error) {
                 console.log("Error" + error);
@@ -163,10 +162,6 @@
             m_markers = mapdetail['markers'];
             move = false;
             currMarker = -1;
-            $('#map_region').val(mapdetail['region']); // 몽고 지도 지역 가져오기
-
-            $('#map_name').val(mapdetail['mapname']); // 몽고 지도 제목 가져오기
-
 
             m_center = { lat: Number(mapdetail['center'][1]), lng: Number(mapdetail['center'][0]) }
             // 구글맵 지도 생성
@@ -247,6 +242,7 @@
             marker.addListener('click', function (event) {
                 $('#marker_desc').val(marker.description.content); // 마커 설명을 입력폼에 넣기
                 // 설명 on
+                marker.description.open(g_map, marker); // 마커에 말풍선 붙이기
             });
 
             // 마커 오른쪽 클릭 이벤트
@@ -255,38 +251,6 @@
 
             g_markers.push(marker); // 구글맵 마커 배열에 넣기
         }
-
-        /******************************/
-
-
-        /******************************/
-        /*
-        function print() {
-            document.getElementById('curr').innerHTML = "currMap: " + currMap + ", currMarker: " + currMarker;
-
-            document.getElementById('mongo').innerHTML = "center: (" + m_map['center'][1] + ", " + m_map['center'][0] + ")<br>";
-            document.getElementById('mongo').innerHTML += "zoom: " + m_map['zoom'] + "<br>";
-            document.getElementById('mongo').innerHTML += "마커 " + m_markers.length + "개<br>";
-            document.getElementById('mongo').innerHTML += "공개여부:  " + m_map['visibility'] + "<br>";
-            for (var i in m_markers) {
-                document.getElementById('mongo').innerHTML += "[" + i + "] "
-                document.getElementById('mongo').innerHTML += "title: " + m_markers[i]['title'] + ", "
-                // document.getElementById('mongo').innerHTML += "(" + m_markers[i]['lat'] + ", " + m_markers[i]['lng'] + "), "
-                document.getElementById('mongo').innerHTML += "desc: " + m_markers[i]['desc']['content'] + "<br>";
-            }
-
-            document.getElementById('google').innerHTML = "center: (" + g_map['center'].lat() + ", " + g_map['center'].lng() + ")<br>";
-            document.getElementById('google').innerHTML += "zoom: " + g_map['zoom'] + "<br>";
-            document.getElementById('google').innerHTML += "마커 " + g_markers.length + "개<br>";
-            document.getElementById('google').innerHTML += "공개여부:  " + visibility + "<br>";
-            for (var i in g_markers) {
-                document.getElementById('google').innerHTML += "[" + i + "] "
-                document.getElementById('google').innerHTML += "title: " + g_markers[i]['title'] + ", "
-                // document.getElementById('google').innerHTML += "(" + g_markers[i]['position'].lat() + ", " + g_markers[i]['position'].lng() + "), "
-                document.getElementById('google').innerHTML += "desc: " + g_markers[i]['description']['content'] + "<br>";
-            }
-        }
-        */
     </script>
 
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo" async
@@ -349,34 +313,6 @@
             <div class="col-lg-10 mx-4">
 
                 <div class="row d-flex justify-content-center">
-                    <!--  -->
-                    <!-- <div class="col-sm-4">
-                        <div class="row mb-2 d-flex justify-content-between align-items-center">
-                            <div class="col-9">
-                                <h5 class="m-0">
-                                    내 지도 목록
-                                </h5>
-                            </div>
-                            <div class="col-1 text-right p-0 mr-3">
-                                <button class="btn btn-secondary p-0 m-0 circle"
-                                    style="width: 32px; height: 32px; border-radius: 50%;" ng-click="add()">
-                                    <i class="fas fa-plus fa-xs" style="color: white; margin: 0 1px 1px 1;"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        map list 
-                        <ul class="pl-4">
-                            <li ng-repeat="item in mapdetail">
-                                <a href="#" ng-click="view($index)">[{{$index}}] {{item.mapno}} {{item.region}}
-                                    {{item.mapname}}</a>
-                                <i class="fas fa-lock fa-xs pl-1" style="color: #adb5bd;"></i>
-                                <i class="fas fa-trash fa-xs pl-1" style="color: #adb5bd;"></i>
-                            </li>
-                        </ul>
-
-                    </div>
-
                     <!-- map view -->
                     <div class="col-sm-12">
                         <div class="container p-0">
@@ -384,31 +320,7 @@
                                 <div class="container">
 
                                     <!-- map title -->
-                                    <form class="row form-group m-0">
-                                        <div class="col-md-3">
-                                            <div class="input-group input-group mb-3">
-                                                <input type="text" class="form-control" placeholder="지역" aria-label="지역"
-                                                    aria-describedby="button-addon" id="map_region">
-                                                <!-- <div class="input-group-append">
-                                                    <button class="btn btn-sm p-0" type="button" id="button-addon"
-                                                        style="background-color: #adb5bd;">
-                                                        <i class="fas fa-search fa-sm px-2" style="color: white;"></i>
-                                                    </button>
-                                                </div> -->
-                                            </div>
-                                        </div>
-                                        <div class="col-md-7">
-                                            <input type="text" class="form-control mb-3" placeholder="지도 제목"
-                                                id="map_name">
-                                        </div>
-                                        <div class="col-md-2">
-                                            <button class="btn btn-secondary p-0 m-0 circle"
-                                                style="width: 32px; height: 32px; border-radius: 50%;" ng-click="add()">
-                                                <i class="fas fa-plus fa-xs"
-                                                    style="color: white; margin: 0 1px 1px 1;"></i>
-                                            </button>
-                                        </div>
-                                    </form>
+                                    <div class="text-center" ng-bind-html="mapHtml"></div>
 
                                     <!-- map -->
                                     <div id="udgmap"></div>
@@ -421,7 +333,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- share & upload -->
                                 </div>
                             </div>
 
@@ -432,25 +343,6 @@
                 </div>
             </div>
         </div>
-
-        <div id="location">&nbsp;</div>
-        <div id="curr">&nbsp;</div>
-        <table cellpadding="10">
-            <tr>
-                <td>====몽고====</td>
-                <td>====구글====</td>
-            </tr>
-            <tr>
-                <td style="vertical-align:top;">
-                    <div id="mongo"></div>
-                </td>
-                <td style="vertical-align:top;">
-                    <div id="google"></div>
-                </td>
-            </tr>
-        </table>
-        <div id="angular">{{mapdetail}}</div>
-
 
         <!-- modal -->
         <div class="modal fade" id="signinModal" tabindex="-1" role="dialog" aria-labelledby="signinModalLabel"
@@ -469,8 +361,8 @@
                         </div>
                         <!-- close button -->
                         <!-- <button type="button" class="close pl-0" data-dismiss="modal" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button> -->
+                        <span aria-hidden="true">&times;</span>
+                        </button> -->
                     </div>
 
                     <!-- modal body -->
