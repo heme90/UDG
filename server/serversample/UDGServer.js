@@ -291,14 +291,19 @@ const followmaps = function (db, id, callback) {
   // find following maps by id
   try {
     collection.findOne({ id: id }, { projection: { _id: 0, followmap: 1 } })
-      .then((result) => { //{ followmap: { mapno: [ 4, 4 ] } }
-        console.log('성공')
-        nums = Array.from(new Set(result.followmap.mapno)); // 중복제거  
-        console.log(nums, typeof nums);
+      .then((result) => { //{ followmap: { mapno: [ 3, 4 ] } }
+        var nums = Array.from(new Set(result.followmap.mapno)); // 중복제거  
+        console.log("nums:", nums, typeof nums);
+
+        var arr = [];
+        for (i=0; i<nums.length; i++) {
+          arr.push({mapno: nums[i]})
+        }
+        console.log(arr);
         collection = db.collection('udgmap'); // udgmap 으로 collection switch
-        collection.find({ mapno: { $all: nums } }).toArray(function (err, followmaps) {
+        collection.find({ $or: arr }).toArray(function (err, followmaps) { // db.udgmap.find({ $or: [ { mapno: 3 }, { mapno: 4 } ] })
           if (err) { console.error(err) }
-          console.log(util.inspect(followmaps, { depth: 5 }))
+          console.log("result:", util.inspect(followmaps, { depth: 5 }))
           return callback(null, followmaps);
         })
       })
@@ -366,8 +371,8 @@ var server = http.createServer(function (req, res) {   //create web server
         });
     }
     else if (_url.startsWith('/mymap.do')) { //check the URL of the current request
-        mymaps(db, query.id, function(err, mymaps){
-            var result = JSON.stringify({ mymaps : mymaps })
+        mymaps(db, query.id, function(err, result){
+            var result = JSON.stringify({ result : result })
             res.end(result, 'utf-8'); // 브라우저로 전송
         });
         // res.sendDate(data);
@@ -442,6 +447,12 @@ var server = http.createServer(function (req, res) {   //create web server
             res.end(data, 'utf-8'); // 브라우저로 전송
         });
     }
+    else if (_url.startsWith('/myfollowmap.do')) { //check the URL of the current request
+      followmaps(db, query.id, function(err, result){
+        var result = JSON.stringify({ result : result })
+        res.end(result, 'utf-8'); // 브라우저로 전송
+    });
+  }
     else if (_url.startsWith("/signup.go")) {
         // set response header
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -491,7 +502,7 @@ var server = http.createServer(function (req, res) {   //create web server
       // set response header
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       // set response content    
-      fs.readFile(__dirname + '/userMod.html', (err, data) => { // 파일 읽는 메소드
+      fs.readFile(__dirname + '/usermod.html', (err, data) => { // 파일 읽는 메소드
         if (err) {
           console.error(err); // 에러 발생시 에러 기록하고 종료
         }

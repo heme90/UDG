@@ -55,36 +55,7 @@
         console.log("Error" + error);
       });
 
-      $("#search-input").keypress(function (event) {
-        var keycode = (event.keyCode ? event.keyCode : event.which);
-        if (keycode == '13') {
-          $.ajax({
-            url: "https://maps.googleapis.com/maps/api/geocode/xml?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&address=" + $("#search-input").val(),
-            success: function (data) {
-              var location = data.getElementsByTagName("location")[0];
-              var lat = location.getElementsByTagName("lat")[0].textContent;
-              var lng = location.getElementsByTagName("lng")[0].textContent;
-              $http({
-                method: 'GET', // HTTP 통신 방법
-                url: "/searchmap.do", // 통신 할 URL
-                timeout: 600000, // 1000 = 1초
-                params: {
-                  lat: lat,
-                  lng: lng
-                }
-              }).then(function successCallBack(response) {
-                $scope.mapList = response.data.searchedMap;
-              }, function errorCallback(error) {
-                console.log("Error" + error);
-              });
-            }
-          });
-        }
-      });
-
-      $scope.Gotodetail = function (mapno) {
-        window.location.href = '/detailmap.go?mapno=' + mapno;
-      }
+      sign()
 
       $scope.signin = function () {
         var signin_info = {
@@ -98,9 +69,11 @@
           data: signin_info,
         }).then(function successCallBack(response) {
           ReadCookie();
+          sign()
         }), function errorCallback(error) {
         }
       }
+
       $scope.signout = function () {
         // alert('signout')
         var signout_info = {
@@ -115,12 +88,57 @@
           data: signout_info,
         }).then(function successCallBack(response) {
           ReadCookie();
+          sign()
         }), function errorCallback(error) {
         }
       }
 
+      function sign() {
+        console.log("cookie id: " + getCookie('id'))
+        if (getCookie('id') != 'non-user') { // 로그인 된 상태일 경우
+          $('#signin-form').attr('class', 'btn p-0 dropdown');
+          $('#signin-form').attr('data-toggle', 'dropdown');
+          $('#signin-form').removeAttr('data-target');
+          $('#signin-form').attr('aria-expanded', 'true');
+        } else { // 로그인 안한 상태일 경우
+          $('#signin-form').attr('class', 'btn p-0');
+          $('#signin-form').attr('data-toggle', 'modal');
+          $('#signin-form').attr('data-target', '#signinModal');
+          $('#signin-form').removeAttr('aria-expanded');
+        }
+      }
+
+      $scope.Gotodetail = function (mapno) {
+        window.location.href = '/detailmap.go?mapno=' + mapno;
+      }
     });
 
+    $("#search-input").keypress(function (event) {
+      var keycode = (event.keyCode ? event.keyCode : event.which);
+      if (keycode == '13') {
+        $.ajax({
+          url: "https://maps.googleapis.com/maps/api/geocode/xml?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&address=" + $("#search-input").val(),
+          success: function (data) {
+            var location = data.getElementsByTagName("location")[0];
+            var lat = location.getElementsByTagName("lat")[0].textContent;
+            var lng = location.getElementsByTagName("lng")[0].textContent;
+            $http({
+              method: 'GET', // HTTP 통신 방법
+              url: "/searchmap.do", // 통신 할 URL
+              timeout: 600000, // 1000 = 1초
+              params: {
+                lat: lat,
+                lng: lng
+              }
+            }).then(function successCallBack(response) {
+              $scope.mapList = response.data.searchedMap;
+            }, function errorCallback(error) {
+              console.log("Error" + error);
+            });
+          }
+        });
+      }
+    });
 
   </script>
 
@@ -173,7 +191,7 @@
     }
 
     .thumb-content:hover .thumb-img-overlay {
-      background-color: rgba(0, 0, 0, 0.7);
+      background-color: rgba(0, 0, 0, 0.4);
     }
 
     .thumb-box-content {
@@ -212,7 +230,7 @@
     }
 
     .thumb-img-overlay {
-      background-color: rgba(0, 0, 0, 0.4);
+      background-color: rgba(0, 0, 0, 0.0);
       -moz-transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       -o-transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       -webkit-transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -306,9 +324,18 @@
 
       <!-- user -->
       <div class="col-1 d-flex justify-content-start align-items-center">
-        <a class="btn p-0" href="#" data-toggle="modal" data-target="#signinModal">
+        <!-- signin -->
+        <a id="signin-form" class="btn p-0" href="#" data-toggle="modal" data-target="#signinModal">
           <i class="fas fa-user-alt fa-lg" style="color: #555;"></i>
         </a>
+        <ul class="dropdown-menu">
+          <li class="px-3">
+            <a href="/usermod.go">회원정보 수정</a>
+          </li>
+          <li class="px-3">
+            <a href="/" ng-click="signout()">로그아웃</a>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
@@ -340,9 +367,9 @@
               <div class="thumb-container">
                 <div class="thumb-content" ng-click="Gotodetail(map.mapno)">
                   <div class="thumb-photo thumb-box-content">
-                    <img
+                    <!-- <img
                       src="https://scontent-icn1-1.cdninstagram.com/vp/bf095ae7e12f3d98ae26af50037f5bec/5DBA8C74/t51.2885-15/e35/57564811_146986786352360_4166844949660890059_n.jpg?_nc_ht=scontent-icn1-1.cdninstagram.com"
-                      style="width: 100%; height: 100%;">
+                      style="width: 100%; height: 100%;"> -->
                   </div>
                   <div class="thumb-img-overlay thumb-box-content"></div>
                   <div class="thumb-infos thumb-box-content">
@@ -404,13 +431,8 @@
               <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal"
                 ng-click="signin()">로그인</button>
             </div>
-            <div class="row d-flex justify-content-center pb-3">
-              <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal"
-                ng-click="signout()">로그아웃</button>
-              <!--id = "logoutbutton"-->
-            </div>
             <div class="row d-flex justify-content-center">
-              <a href="#">비밀번호를 잊어버리셨나요?</a><br>
+                <a href="#">아이디</a>&nbsp;<a href="#">비밀번호</a>&nbsp;찾기<br>
             </div>
             <div class="row d-flex justify-content-center">
               계정이 없으신가요?&nbsp;<a href="/signup.go">회원가입</a>
@@ -420,7 +442,6 @@
       </div>
     </div>
   </div>
-
 
   <!-- footer -->
   <footer>

@@ -28,21 +28,80 @@
   <link href="css/mycss.css" rel="stylesheet">
 
   <script>
+    function ReadCookie() {
+      var allcookies = document.cookie;
+      console.log("모든쿠키값 : " + allcookies);
+    }
+    function getCookie(name) {
+      var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+      return v ? v[2] : 'non-user';
+    }
+  </script>
+
+  <script>
     var app = angular.module("myApp", []);
     app.controller("myCtrl", function ($scope, $http) {
-      $scope.user = {
-        id: 'yunki',
-        pw: '1111',
-        email: 'aaa@naver.com'
+
+      sign()
+
+      $scope.signin = function () {
+        var signin_info = {
+          id: $("#form-id").val(),
+          pw: $("#form-pw").val()
+        }
+        $http({
+          method: 'POST',
+          url: '/signin.do',
+          timeout: 600000,
+          data: signin_info,
+        }).then(function successCallBack(response) {
+          ReadCookie();
+          sign()
+        }), function errorCallback(error) {
+        }
+      }
+
+      $scope.signout = function () {
+        // alert('signout')
+        var signout_info = {
+          id: getCookie('id'),
+          pw: getCookie('pw'),
+          email: getCookie('email')
+        }
+        $http({
+          method: 'POST',
+          url: '/signout.do',
+          timeout: 600000,
+          data: signout_info,
+        }).then(function successCallBack(response) {
+          ReadCookie();
+          sign()
+        }), function errorCallback(error) {
+        }
+      }
+
+      function sign() {
+        console.log("cookie id: " + getCookie('id'))
+        if (getCookie('id') != 'non-user') { // 로그인 된 상태일 경우
+          $('#signin-form').attr('class', 'btn p-0 dropdown');
+          $('#signin-form').attr('data-toggle', 'dropdown');
+          $('#signin-form').removeAttr('data-target');
+          $('#signin-form').attr('aria-expanded', 'true');
+        } else { // 로그인 안한 상태일 경우
+          $('#signin-form').attr('class', 'btn p-0');
+          $('#signin-form').attr('data-toggle', 'modal');
+          $('#signin-form').attr('data-target', '#signinModal');
+          $('#signin-form').removeAttr('aria-expanded');
+        }
       }
 
       $scope.userForm = {
-        id: 'yunki',
-        pw: '1111',
-        email: 'aaa@naver.com'
+        id: getCookie('id'),
+        pw: getCookie('pw'),
+        email: getCookie('email')
       };
 
-      $scope.modifyUser = function () {
+      $scope.modifyUser = function() {
         var mod = confirm("회원정보를 수정하시겠습니까?");
 
         if (mod == true) {
@@ -65,22 +124,26 @@
             console.log("Error" + error);
           });
         }
-      }
+      };
+
+      $scope.reset = function() {
+        $scope.userForm = {
+          id: getCookie('id'),
+          pw: getCookie('pw'),
+          email: getCookie('email')
+        };
+      };
+
     });
   </script>
-  <!--enter key event-->
 
+  <!--enter key event-->
   <script>
     $(document).keypress(function (event) {
-
       var keycode = (event.keyCode ? event.keyCode : event.which);
-
       if (keycode == '13') {
-
         alert('Enter key 누름');
-
       }
-
     });
   </script>
 </head>
@@ -100,59 +163,50 @@
       <!-- search -->
       <div class="col-3 p-0">
         <div class="form-group d-flex align-items-center m-0">
-          <span class="input-group-addon fas fa-search fa-md"
-            style="color:grey; position: relative; left:22px; z-index:1;">
+          <span class="input-group-addon fas fa-search fa-sm"
+            style="color:grey; position: relative; left:15px; z-index:1;">
           </span>
-          <input type="search" class="form-control" id="search-input" placeholder="검색" aria-label="Search"
+          <input type="text" class="form-control" id="search-input" placeholder="검색" aria-label="Search"
             spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"
-            aria-owns="algolia-autocomplete-listbox-0" dir="auto"
-            style="position: relative; padding:3px 10px 3px 26px;">
-          <!--onclick에 검색 쿼리 연결해야 함-->
-          <button id="myBtn" class="btn btn-group-sm btn-outline-secondary" style="position: relative"
-            onclick="javascript:alert('클릭 버튼')">search</button>
+            aria-owns="algolia-autocomplete-listbox-0" dir="auto" value=""
+            style="position: relative; right:7px; padding:3px 10px 3px 26px;">
         </div>
       </div>
 
-      <!-- userMod icon-->
+      <!-- user -->
       <div class="col-1 d-flex justify-content-start align-items-center">
-        <a class="btn p-0" href="#" data-toggle="modal" data-target="#signinModal">
-          <i class="fas fa-user-edit fa-lg" style="color: #555;"></i>
+        <!-- signin -->
+        <a id="signin-form" class="btn p-0" href="#" data-toggle="modal" data-target="#signinModal">
+          <i class="fas fa-user-alt fa-lg" style="color: #555;"></i>
         </a>
-        <!--login 후 icon dropdown-->
-        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
-          <span class="caret"><i class="fas fa-child" style="font-size: 1.5em; color: #555;"></i></span>
-        </button>
         <ul class="dropdown-menu">
-          <li><a href="../userMod.html">회원정보 수정</a></li>
-          <li><a href="/" id="sign" onclick="logout();"> Log-out</a></li>
+          <li class="px-3">
+            <a href="/usermod.go">회원정보 수정</a>
+          </li>
+          <li class="px-3">
+            <a href="/" ng-click="signout()">로그아웃</a>
+          </li>
         </ul>
       </div>
     </div>
-    <script>
-      $('#sign').click(function () {
-        var signout = confirm("로그아웃 하시겠습니까?");
+  </div>
 
-        if (signout == true) {
-          signout();
-        }
-      });
-    </script>
-    <div class="container-fluid h-100 p-0 m-0 bg-light">
-      <!-- menu -->
-      <div class="row d-flex justify-content-center py-3 m-0">
-        <div class="col-sm-6">
-          <ul class="nav nav-justified">
-            <li class="nav-item"><a href="/" class="text-black-50">전체 지도</a></li>
-            <li class="nav-item"><a href="/mymap.go" class="text-black-50">나만의 지도</a></li>
-            <li class="nav-item"><a href="/myfollowmap.go" class="text-black-50">팔로우</a></li>
-          </ul>
-        </div>
+
+  <div class="container-fluid h-100 p-0 m-0 bg-light">
+    <!-- menu -->
+    <div class="row d-flex justify-content-center py-3 m-0">
+      <div class="col-sm-6">
+        <ul class="nav nav-justified">
+          <li class="nav-item"><a href="/" class="text-black-50">전체 지도</a></li>
+          <li class="nav-item"><a href="/mymap.go" class="text-black-50">나만의 지도</a></li>
+          <li class="nav-item"><a href="/myfollowmap.go" class="text-black-50">팔로우</a></li>
+        </ul>
       </div>
     </div>
-
+  </div>
 
     <div class="container-fluid h-100 p-0 m-0 bg-light">
-      <!-- test -->
+      <!-- user modify -->
       <div class="row d-flex justify-content-center m-0">
         <div class="col-lg-10 mx-4">
           <div class="row d-flex justify-content-center">
@@ -160,18 +214,18 @@
           </div>
           <div class="row d-flex justify-content-center">
             <div class="col-6">
-              <form class="form-group" ng-submit="modifyUser()">
+              <form class="form-group">
                 <input type="text" class="form-control mb-2" placeholder="아이디" ng-model="userForm.id" ng-readonly="true">
-                <input type="text" class="form-control mb-2" placeholder="비밀번호" ng-model="userForm.pw">
-                <input type="text" class="form-control mb-2" placeholder="비밀번호 확인">
+                <input type="password" class="form-control mb-2" placeholder="비밀번호" ng-model="userForm.pw">
+                <input type="password" class="form-control mb-2" placeholder="비밀번호 확인">
                 <input type="text" class="form-control mb-2" placeholder="이메일" ng-model="userForm.email">
 
                 <div class="row">
                   <div class="col-6 pr-2">
-                    <button type="submit" id="user_mod" class="btn btn-primary btn-block">수정</button>
+                    <button id="user_mod" ng-click="modifyUser()" class="btn btn-primary btn-block">수정</button>
                   </div>
                   <div class="col-6 pl-2">
-                    <button type="reset" class="btn btn-primary btn-block">취소</button>
+                    <button ng-click="reset()" class="btn btn-primary btn-block">취소</button>
                   </div>
                 </div>
               </form>
@@ -181,54 +235,58 @@
       </div>
     </div>
    
-    <!-- modal -->
-    <div class="modal fade" id="signinModal" tabindex="-1" role="dialog" aria-labelledby="signinModalLabel"
-      aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <!-- modal header -->
-          <div class="modal-header border-bottom-0 pb-0">
-            <div class="container-fluid">
-              <div class="row d-flex justify-content-center">
-                <h5 class="modal-title" id="signinModalLabel">우리 동네 지도</h5>
-              </div>
-              <div class="row d-flex justify-content-center">
-                로그인
-              </div>
+  <!-- modal -->
+  <div class="modal fade" id="signinModal" tabindex="-1" role="dialog" aria-labelledby="signinModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <!-- modal header -->
+        <div class="modal-header border-bottom-0 pb-0">
+          <div class="container-fluid">
+            <div class="row d-flex justify-content-center">
+              <h5 class="modal-title" id="signinModalLabel">우리 동네 지도</h5>
+            </div>
+            <div class="row d-flex justify-content-center">
+              로그인
             </div>
           </div>
-
-          <!-- modal body -->
-          <div class="modal-body">
-            <div class="form-group">
-              <label class="sr-only" for="form-username">id</label>
-              <input type="text" name="form-username" placeholder="아이디" class="form-control bg-light border-0"
-                id="form-id">
-            </div>
-            <div class="form-group m-0">
-              <label class="sr-only" for="form-password">pw</label>
-              <input type="password" name="form-password" placeholder="패스워드" class="form-control bg-light border-0"
-                id="form-pw">
-            </div>
+          <!-- close button -->
+          <!-- <button type="button" class="close pl-0" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button> -->
+        </div>
+  
+        <!-- modal body -->
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="sr-only" for="form-username">id</label>
+            <input type="text" name="form-username" placeholder="아이디" class="form-control bg-light border-0" id="form-id">
           </div>
-
-          <!-- modal footer -->
-          <div class="modal-footer border-top-0 pt-0">
-            <div class="container-fluid">
-              <div class="row d-flex justify-content-center pb-3">
-                <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">로그인</button>
-              </div>
-              <div class="row d-flex justify-content-center">
-                <a href="#">비밀번호를 잊어버리셨나요?</a><br>
-              </div>
-              <div class="row d-flex justify-content-center">
-                계정이 없으신가요?&nbsp;<a href="/signup.go">회원가입</a>
-              </div>
+          <div class="form-group m-0">
+            <label class="sr-only" for="form-password">pw</label>
+            <input type="password" name="form-password" placeholder="패스워드" class="form-control bg-light border-0"
+              id="form-pw">
+          </div>
+        </div>
+  
+        <!-- modal footer -->
+        <div class="modal-footer border-top-0 pt-0">
+          <div class="container-fluid">
+            <div class="row d-flex justify-content-center pb-3">
+              <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal"
+                ng-click="signin()">로그인</button>
+            </div>
+            <div class="row d-flex justify-content-center">
+              <a href="#">아이디</a>&nbsp;<a href="#">비밀번호</a>&nbsp;찾기<br>
+            </div>
+            <div class="row d-flex justify-content-center">
+              계정이 없으신가요?&nbsp;<a href="/signup.go">회원가입</a>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
     <!-- footer -->
     <footer>

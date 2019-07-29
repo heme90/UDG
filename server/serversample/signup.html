@@ -28,9 +28,72 @@
   <link href="css/mycss.css" rel="stylesheet">
 
     <script>
+        function ReadCookie() {
+            var allcookies = document.cookie;
+            console.log("모든쿠키값 : " + allcookies);
+        }
+        function getCookie(name) {
+            var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+            return v ? v[2] : 'non-user';
+        }
+    </script>
+    <script>
         var app = angular.module("myApp", []);
         app.controller("myCtrl", function ($scope, $http) {
             $scope.userForm = {};
+
+            sign()
+
+            $scope.signin = function () {
+            var signin_info = {
+                id: $("#form-id").val(),
+                pw: $("#form-pw").val()
+            }
+            $http({
+                method: 'POST',
+                url: '/signin.do',
+                timeout: 600000,
+                data: signin_info,
+            }).then(function successCallBack(response) {
+                ReadCookie();
+                sign()
+            }), function errorCallback(error) {
+            }
+            }
+
+            $scope.signout = function () {
+            // alert('signout')
+            var signout_info = {
+                id: getCookie('id'),
+                pw: getCookie('pw'),
+                email: getCookie('email')
+            }
+            $http({
+                method: 'POST',
+                url: '/signout.do',
+                timeout: 600000,
+                data: signout_info,
+            }).then(function successCallBack(response) {
+                ReadCookie();
+                sign()
+            }), function errorCallback(error) {
+            }
+            }
+
+            function sign() {
+            console.log("cookie id: " + getCookie('id'))
+            if (getCookie('id') != 'non-user') { // 로그인 된 상태일 경우
+                $('#signin-form').attr('class', 'btn p-0 dropdown');
+                $('#signin-form').attr('data-toggle', 'dropdown');
+                $('#signin-form').removeAttr('data-target');
+                $('#signin-form').attr('aria-expanded', 'true');
+            } else { // 로그인 안한 상태일 경우
+                $('#signin-form').attr('class', 'btn p-0');
+                $('#signin-form').attr('data-toggle', 'modal');
+                $('#signin-form').attr('data-target', '#signinModal');
+                $('#signin-form').removeAttr('aria-expanded');
+            }
+            }
 
             $scope.addUser = function () {
                 var newUser = {
@@ -204,49 +267,58 @@
 </head>
 
 <body ng-controller="myCtrl">
-
+    
     <div class="container-fluid p-0 m-0">
         <!-- header -->
         <div class="row d-flex justify-content-center py-3 m-0 border-bottom">
-          <!-- home -->
-          <div class="col-1 d-flex justify-content-end align-items-center">
+            <!-- home -->
+            <div class="col-1 d-flex justify-content-end align-items-center">
             <a class="btn p-0" href="/mainpage.go">
-              <i class="fas fa-home fa-lg" style="color: #555;"></i>
+                <i class="fas fa-home fa-lg" style="color: #555;"></i>
             </a>
-          </div>
+            </div>
     
-          <!-- search -->
-          <div class="col-3 p-0">
+            <!-- search -->
+            <div class="col-3 p-0">
             <div class="form-group d-flex align-items-center m-0">
-              <span class="input-group-addon fas fa-search fa-sm"
+                <span class="input-group-addon fas fa-search fa-sm"
                 style="color:grey; position: relative; left:15px; z-index:1;">
-              </span>
-              <input type="search" class="form-control" id="search-input" placeholder="검색" aria-label="Search"
+                </span>
+                <input type="text" class="form-control" id="search-input" placeholder="검색" aria-label="Search"
                 spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"
-                aria-owns="algolia-autocomplete-listbox-0" dir="auto"
+                aria-owns="algolia-autocomplete-listbox-0" dir="auto" value=""
                 style="position: relative; right:7px; padding:3px 10px 3px 26px;">
             </div>
-          </div>
+            </div>
     
-          <!-- user -->
-          <div class="col-1 d-flex justify-content-start align-items-center">
-            <a class="btn p-0" href="#" data-toggle="modal" data-target="#signinModal">
-              <i class="fas fa-user-alt fa-lg" style="color: #555;"></i>
+            <!-- user -->
+            <div class="col-1 d-flex justify-content-start align-items-center">
+            <!-- signin -->
+            <a id="signin-form" class="btn p-0" href="#" data-toggle="modal" data-target="#signinModal">
+                <i class="fas fa-user-alt fa-lg" style="color: #555;"></i>
             </a>
-          </div>
+            <ul class="dropdown-menu">
+                <li class="px-3">
+                <a href="/usermod.go">회원정보 수정</a>
+                </li>
+                <li class="px-3">
+                <a href="/" ng-click="signout()">로그아웃</a>
+                </li>
+            </ul>
+            </div>
         </div>
-    </div>
-
-
-    <div class="container-fluid h-100 p-0 m-0 bg-light">
+        </div>
+    
+    
+        <div class="container-fluid h-100 p-0 m-0 bg-light">
         <!-- menu -->
         <div class="row d-flex justify-content-center py-3 m-0">
             <div class="col-sm-6">
-                <ul class="nav nav-justified">
-                    <li class="nav-item"><a href="/" class="text-black-50">전체 지도</a></li>
-                    <li class="nav-item"><a href="/mymap.go" class="text-black-50">나만의 지도</a></li>
-                    <li class="nav-item"><a href="/myfollowmap.go" class="text-black-50">팔로우</a></li>
-                </ul>
+            <ul class="nav nav-justified">
+                <li class="nav-item"><a href="/" class="text-black-50">전체 지도</a></li>
+                <li class="nav-item"><a href="/mymap.go" class="text-black-50">나만의 지도</a></li>
+                <li class="nav-item"><a href="/myfollowmap.go" class="text-black-50">팔로우</a></li>
+            </ul>
             </div>
         </div>
     </div>
@@ -261,12 +333,35 @@
                 </div>
                 <div class="row d-flex justify-content-center">
                     <div class="col-6">
-                        <form class="form-group" ng-submit="addUser()">
-                            <input type="text" class="form-control mb-2" placeholder="아이디" name="id" id="id" ng-model="userForm.id" onkeyup="validateId()" /><div id="id_valid_rs"></div><button onclick="confirmId()">중복확인</button>
-                            <input type="password" class="form-control mb-2" placeholder="비밀번호" name="pw" id ="pw" ng-model="userForm.pw" onkeyup="validatePw()" /> <div id="pw_valid_rs"></div>
-                            <input type="password" class="form-control mb-2" name="pwcheck" id="pwcheck" placeholder="비밀번호 확인" onkeyup="verifyPw()" /> <div id="pw_verify_rs"></div>
-                            <input type="text" class="form-control mb-2" placeholder="이메일" name="email" id ="email" ng-model="userForm.email"  onkeyup="validateEmail()" /><div id="email_valid_rs"></div><button onclick="confirmEmail()">중복확인</button>
-                            <button type="submit" class="btn btn-primary btn-block">회원가입</button>
+                        <form class="form-group">
+
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" placeholder="아이디" name="id" id="id" ng-model="userForm.id" onkeyup="validateId()" />
+                                <div class="input-group-append">
+                                    <button class="btn text-white" type="button" id="id-addon" style="background-color: #adb5bd;" onclick="confirmId()">
+                                            중복확인
+                                        </button>
+                                    </div>
+                                </div>
+                            <div id="id_valid_rs" class="mb-2"></div>
+
+                            <input type="password" class="form-control mb-2" placeholder="비밀번호" name="pw" id ="pw" ng-model="userForm.pw" onkeyup="validatePw()" />
+                            <div id="pw_valid_rs" class="mb-2"></div>
+
+                            <input type="password" class="form-control mb-2" name="pwcheck" id="pwcheck" placeholder="비밀번호 확인" onkeyup="verifyPw()" />
+                            <div id="pw_verify_rs" class="mb-2"></div>
+
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" placeholder="이메일" name="email" id ="email" ng-model="userForm.email"  onkeyup="validateEmail()" />
+                                <div class="input-group-append">
+                                    <button class="btn text-white" type="button" id="email-addon" style="background-color: #adb5bd;" onclick="confirmEmail()">
+                                            중복확인
+                                        </button>
+                                    </div>
+                                </div>
+                            <div id="email_valid_rs" class="mb-2"></div>
+
+                            <button class="btn btn-primary btn-block form-control" ng-click="addUser()">회원가입</button>
                         </form>
                     </div>
                 </div>
@@ -292,10 +387,10 @@
                     </div>
                     <!-- close button -->
                     <!-- <button type="button" class="close pl-0" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                    </button> -->
+            <span aria-hidden="true">&times;</span>
+          </button> -->
                 </div>
-
+    
                 <!-- modal body -->
                 <div class="modal-body">
                     <div class="form-group">
@@ -309,15 +404,16 @@
                             class="form-control bg-light border-0" id="form-pw">
                     </div>
                 </div>
-
+    
                 <!-- modal footer -->
                 <div class="modal-footer border-top-0 pt-0">
                     <div class="container-fluid">
                         <div class="row d-flex justify-content-center pb-3">
-                            <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">로그인</button>
+                            <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal"
+                                ng-click="signin()">로그인</button>
                         </div>
                         <div class="row d-flex justify-content-center">
-                            <a href="#">비밀번호를 잊어버리셨나요?</a><br>
+                            <a href="#">아이디</a>&nbsp;<a href="#">비밀번호</a>&nbsp;찾기<br>
                         </div>
                         <div class="row d-flex justify-content-center">
                             계정이 없으신가요?&nbsp;<a href="/signup.go">회원가입</a>

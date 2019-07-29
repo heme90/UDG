@@ -35,6 +35,17 @@
   <link href="css/mycss.css" rel="stylesheet">
 
   <script>
+    function ReadCookie() {
+      var allcookies = document.cookie;
+      console.log("모든쿠키값 : " + allcookies);
+    }
+    function getCookie(name) {
+      var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+      return v ? v[2] : 'non-user';
+    }
+  </script>
+
+  <script>
     var app = angular.module("myApp", []);
     app.controller("myCtrl", function ($scope, $http) {
 
@@ -42,142 +53,78 @@
       
       $http({
         method: 'GET', // HTTP 통신 방법
-        url: "/mymap.do", // 통신 할 URL
+        url: "/myfollowmap.do", // 통신 할 URL
         timeout: 600000, // 1000 = 1초
         params: { // 보낼 변수
-          id: "yunki"
+          id: getCookie('id')
         }
-        // responseType: 'json',  // 데이터 타입
-        // header: {
-        //   "Content-Type": "application/json; charset=utf-8",
-        //   "Accept": "application/json"
-        // }
       }).then(function successCallBack(response) {
-        console.log("Success");
-        $scope.mapList = response.data.mymaps;
-        m_maps = response.data.mymaps;
+        console.log("Success: follow map load");
+        $scope.mapList = response.data.result;
+        m_maps = response.data.result;
+        console.log(response.data);
         initMap();
       }, function errorCallback(error) {
         console.log("Error" + error);
       });
      
-      // 지도 목록 삭제
-      $scope.remove = function (no) {
-        if (!no) return;
-        var remove = confirm("지도를 삭제하시겠습니까?" + no);
+      sign()
 
-        if (remove == true) {
-          // var idx = -1;
-          // for (var i = 0; i < $scope.mapList.length; i++) {
-          //   if ($scope.mapList[i].id === id) {
-          //     idx = i;
-          //     break;
-          //   }
-          // }
-  
-          // if (idx === -1) return;
-          // $scope.mapList.splice(idx, 1);
+      $scope.signin = function () {
+        var signin_info = {
+          id: $("#form-id").val(),
+          pw: $("#form-pw").val()
         }
-
-      };
-
-      $scope.userForm = {};
-
-      // 지도 목록 추가
-      $scope.add = function () {
-        var newMap = {
-          mapno: "",
-          id: "yunki",
-          region: "",
-          mapname: "새로운 지도",
-          center: [126.979330, 37.531402],
-          zoom: 11,
-          visibility: false,
-          cnt_follow: 0,
-          markers: []
-        };
-
-        $scope.mapList.push(newMap);
-        // console.log($scope.mapList.length);
-        currMap = $scope.mapList.length-1;
-
-        var sendData = $.param(newMap);
         $http({
-          method: 'POST', // HTTP 통신 방법
-          url: "/makemap.do", // 통신 할 URL
-          timeout: 600000, // 1000 = 1초
-          data: $.param({ // 보낼 데이터
-            mapno: newMap.mapno,
-            id: newMap.id,
-            region: newMap.region,
-            mapname: newMap.mapname,
-            center_lat: newMap.center[1],
-            center_lng: newMap.center[0],
-            zoom: newMap.zoom,
-            visibility: newMap.visibility,
-            cnt_follow: newMap.cnt_follow,
-            markers: newMap.markers
-          })
+          method: 'POST',
+          url: '/signin.do',
+          timeout: 600000,
+          data: signin_info,
         }).then(function successCallBack(response) {
-          console.log("Success: new map");
-        }, function errorCallback(error) {
-          console.log("Error" + error);
-        });
-        initMap();
-      };
+          ReadCookie();
+          sign()
+        }), function errorCallback(error) {
+        }
+      }
+
+      $scope.signout = function () {
+        // alert('signout')
+        var signout_info = {
+          id: getCookie('id'),
+          pw: getCookie('pw'),
+          email: getCookie('email')
+        }
+        $http({
+          method: 'POST',
+          url: '/signout.do',
+          timeout: 600000,
+          data: signout_info,
+        }).then(function successCallBack(response) {
+          ReadCookie();
+          sign()
+        }), function errorCallback(error) {
+        }
+      }
+
+      function sign() {
+        console.log("cookie id: " + getCookie('id'))
+        if (getCookie('id') != 'non-user') { // 로그인 된 상태일 경우
+          $('#signin-form').attr('class', 'btn p-0 dropdown');
+          $('#signin-form').attr('data-toggle', 'dropdown');
+          $('#signin-form').removeAttr('data-target');
+          $('#signin-form').attr('aria-expanded', 'true');
+        } else { // 로그인 안한 상태일 경우
+          $('#signin-form').attr('class', 'btn p-0');
+          $('#signin-form').attr('data-toggle', 'modal');
+          $('#signin-form').attr('data-target', '#signinModal');
+          $('#signin-form').removeAttr('aria-expanded');
+        }
+      }
 
       // 지도 목록 클릭시 지도 뷰 바꾸기
       $scope.view = function (idx) {
         currMap = idx;
         initMap();
-      }
-
-      // 구글맵 마커를 몽고 마커에 저장하기
-      $scope.mapSave = function (idx) {
-        var region = $('#map_region').val();
-        var mapname = $('#map_name').val();
-        if (region == "") {
-          alert("지역을 입력해주세요.")
-          return;
-        }
-
-        if (mapname == "") {
-          alert("지도의 제목을 입력해주세요.")
-          return;
-        }
-
-        var save = confirm("지도를 저장하시겠습니까?");
-        if (save == true) {
-          m_markers = [];
-
-          // 구글맵 마커를 몽고 마커 형식으로 변환
-          for (i in g_markers) {
-            var title = g_markers[i]['title'];
-            var lat = g_markers[i]['position'].lat();
-            var lng = g_markers[i]['position'].lng();
-            var desc = g_markers[i]['description']['content'];
-
-            var marker = {
-              'title': title,
-              'lat': lat,
-              'lng': lng,
-              'desc': { 'content': desc }
-            };
-
-            m_markers.push(marker); // 몽고 마커 배열에 넣기
-          }
-
-          m_map['region'] = region;
-          m_map['mapname'] = mapname;
-          m_map['center'][1] = g_map['center'].lat();
-          m_map['center'][0] = g_map['center'].lng();
-          m_map['zoom'] = g_map['zoom'];
-          m_map['visibility'] = visibility;
-          m_map['markers'] = m_markers;
-
-          m_maps[currMap] = m_map;
-          print();
-        }
       }
     
     });
@@ -206,13 +153,9 @@
       currMarker = -1;
       move = false;
 
-      $('#map_region').val(m_map['region']); // 몽고 지도 지역 가져오기
-      
-      if (m_map['mapname'] == "새로운 지도") {
-        $('#map_name').val("");
-      } else {
-        $('#map_name').val(m_map['mapname']); // 몽고 지도 제목 가져오기
-      }
+      $('#map_region').html(m_map['region']); // 몽고 지도 지역 가져오기
+      $('#map_name').html(m_map['mapname']); // 몽고 지도 제목 가져오기
+      $('#map_id').html(m_map['id']); // 몽고 지도 아이디 가져오기
 
       if (visibility == false) { // 비공개
         $('#unlock').hide();
@@ -242,7 +185,6 @@
       // 지도 왼쪽 클릭 이벤트
       
 
-     
       var show = true;
       // 지도 오른쪽 클릭 이벤트
       g_map.addListener('rightclick', function (event) {
@@ -260,13 +202,7 @@
           setMapOnAll(g_map); // 구글맵 마커 그리기
           show = true;
         }
-        print();
       });
-      
-
-
-      print();
-      // console.log(g_markers)
       g_map.panTo(m_center); // 구글맵 중심 이동
     }
 
@@ -284,7 +220,7 @@
         var marker = new google.maps.Marker({
           position: { "lat": lat, "lng": lng },
           map: g_map,
-          draggable: true,
+          draggable: false,
           title: m_markers[i]['title'],
           icon: ' ',
           label: {
@@ -307,12 +243,6 @@
       setMapOnAll(g_map); // 구글맵 마커 그리기
     }
 
-    // 구글맵 마커 생성하기
-    
-
-    // 마커 이동
-    
-
     // 마커 전체 그리기
     function setMapOnAll(map) {
       for (i in g_markers) {
@@ -327,26 +257,19 @@
       }
     }
 
-    // 마커 전체 삭제
-    
-
-    // 마커 한개 삭제
-   
-
-    // 마커 설명 바꾸기
-   
-
     // 마커 공통 메서드
     function markerCommon(marker) {
       marker.description.open(g_map, marker); // 마커에 말풍선 붙이기
       // 마커 왼쪽 클릭 이벤트
-      marker.addListener('click', function(event) {
-        // 구글맵 마커 지우기
+      marker.addListener('click', function (event) {
+        setMapOnAll(null); // 구글맵 마커 지우기
+
         currMarker = Number(marker.title)-1;
         $('#marker_desc').val(marker.description.content); // 마커 설명을 입력폼에 넣기
+
         // 설명 on
-        // 구글맵 마커 그리기
-        print();
+        marker.description.open(g_map, marker); // 마커에 말풍선 붙이기
+        setMapOnAll(g_map); // 구글맵 마커 그리기
       });
 
       // 마커 오른쪽 클릭 이벤트
@@ -355,46 +278,6 @@
 
       g_markers.push(marker); // 구글맵 마커 배열에 넣기
     }
-
-    /******************************/
-
-    // 마커 등록
-    
-
-    // 마커 등록 취소
-    
-
-   
-  
-    
-    /******************************/
-
-    function print() {
-      document.getElementById('curr').innerHTML = "currMap: " + currMap + ", currMarker: " + currMarker;
-
-      document.getElementById('mongo').innerHTML = "center: (" + m_map['center'][1] + ", " + m_map['center'][0] + ")<br>";
-      document.getElementById('mongo').innerHTML += "zoom: " + m_map['zoom'] + "<br>";
-      document.getElementById('mongo').innerHTML += "마커 " + m_markers.length + "개<br>";
-      document.getElementById('mongo').innerHTML += "공개여부:  " + m_map['visibility'] + "<br>";
-      for (var i in m_markers) {
-        document.getElementById('mongo').innerHTML += "[" + i + "] "
-        document.getElementById('mongo').innerHTML += "title: " + m_markers[i]['title'] + ", "
-        // document.getElementById('mongo').innerHTML += "(" + m_markers[i]['lat'] + ", " + m_markers[i]['lng'] + "), "
-        document.getElementById('mongo').innerHTML += "desc: " + m_markers[i]['desc']['content'] + "<br>";
-      }
-
-      document.getElementById('google').innerHTML = "center: (" + g_map['center'].lat() + ", " + g_map['center'].lng() + ")<br>";
-      document.getElementById('google').innerHTML += "zoom: " + g_map['zoom'] + "<br>";
-      document.getElementById('google').innerHTML += "마커 " + g_markers.length + "개<br>";
-      document.getElementById('google').innerHTML += "공개여부:  " + visibility + "<br>";
-      for (var i in g_markers) {
-        document.getElementById('google').innerHTML += "[" + i + "] "
-        document.getElementById('google').innerHTML += "title: " + g_markers[i]['title'] + ", "
-        // document.getElementById('google').innerHTML += "(" + g_markers[i]['position'].lat() + ", " + g_markers[i]['position'].lng() + "), "
-        document.getElementById('google').innerHTML += "desc: " + g_markers[i]['description']['content'] + "<br>";
-      }
-    }
-
   </script>
 
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo"
@@ -420,18 +303,27 @@
           <span class="input-group-addon fas fa-search fa-sm"
             style="color:grey; position: relative; left:15px; z-index:1;">
           </span>
-          <input type="search" class="form-control" id="search-input" placeholder="검색" aria-label="Search"
+          <input type="text" class="form-control" id="search-input" placeholder="검색" aria-label="Search"
             spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"
-            aria-owns="algolia-autocomplete-listbox-0" dir="auto"
+            aria-owns="algolia-autocomplete-listbox-0" dir="auto" value=""
             style="position: relative; right:7px; padding:3px 10px 3px 26px;">
         </div>
       </div>
 
       <!-- user -->
       <div class="col-1 d-flex justify-content-start align-items-center">
-        <a class="btn p-0" href="#" data-toggle="modal" data-target="#signinModal">
+        <!-- signin -->
+        <a id="signin-form" class="btn p-0" href="#" data-toggle="modal" data-target="#signinModal">
           <i class="fas fa-user-alt fa-lg" style="color: #555;"></i>
         </a>
+        <ul class="dropdown-menu">
+          <li class="px-3">
+            <a href="/usermod.go">회원정보 수정</a>
+          </li>
+          <li class="px-3">
+            <a href="/" ng-click="signout()">로그아웃</a>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
@@ -462,22 +354,15 @@
             <div class="row mb-2 d-flex justify-content-between align-items-center">
               <div class="col-9">
                 <h5 class="m-0">
-                  내 지도 목록
+                  팔로우한 지도 목록
                 </h5>
-              </div>
-              <div class="col-1 text-right p-0 mr-3">
-                <button class="btn btn-secondary p-0 m-0 circle" style="width: 32px; height: 32px; border-radius: 50%;" ng-click="add()">
-                  <i class="fas fa-plus fa-xs" style="color: white; margin: 0 1px 1px 1;"></i>
-                </button>
               </div>
             </div>
 
             <!-- map list -->
             <ul class="pl-4">
               <li ng-repeat="item in mapList">
-                <a href="#" ng-click="view($index)">[{{$index}}] {{item.mapno}} {{item.region}} {{item.mapname}}</a>
-                <i class="fas fa-lock fa-xs pl-1" style="color: #adb5bd;"></i>
-                <i class="fas fa-trash fa-xs pl-1" style="color: #adb5bd;" ng-click="remove(item.mapno)"></i>
+                <a href="#" ng-click="view($index)">{{item.id}}님의 {{item.region}} {{item.mapname}}</a>
               </li>
             </ul>
             
@@ -490,34 +375,22 @@
                 <div class="container">
 
                   <!-- map title -->
-                  <form class="row form-group m-0">
-                    <div class="col-md-4">
-                      <div class="input-group input-group mb-3">
-                        <input type="text" class="form-control" placeholder="지역" aria-label="지역" aria-describedby="button-addon"
-                          id="map_region">
-                        <div class="input-group-append">
-                          <button class="btn btn-sm p-0" type="button" id="button-addon" style="background-color: #adb5bd;">
-                            <i class="fas fa-search fa-sm px-2" style="color: white;"></i>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-md-8">
-                      <input type="text" class="form-control mb-3" placeholder="지도 제목" id="map_name">
-                    </div>
-                  </form>
+                  <h3 class="col-10">
+                      <span id="map_id"></span>님의
+                      <span id="map_region"></span>&nbsp;
+                      <span id="map_name"></span>
+                  </h3>
 
-                    <!-- map -->
-                    <div id="udgmap"></div>
-
-                    <!-- marker desc -->
-                    <div class="row pt-3">
-                      <div class="col-md-12 col-12 pb-3">
-                        <textarea class="form-control" placeholder="장소에 대한 설명" id="marker_desc" readonly="readonly"></textarea>
-                      </div>
+                  <!-- map -->
+                  <div id="udgmap"></div>
+                  
+                  <!-- marker desc -->
+                  <div class="row pt-3">
+                    <div class="col-md-12 col-12 pb-3">
+                      <textarea class="form-control" placeholder="장소에 대한 설명" id="marker_desc" readonly="readonly"></textarea>
                     </div>
+                  </div>
 
-                    <!-- share & upload -->
                 </div>
               </div>
 
@@ -528,25 +401,6 @@
         </div>
       </div>
     </div>
-
-    <div id="location">&nbsp;</div>
-    <div id="curr">&nbsp;</div>
-    <table cellpadding="10">
-      <tr>
-        <td>====몽고====</td>
-        <td>====구글====</td>
-      </tr>
-      <tr>
-        <td style="vertical-align:top;">
-          <div id="mongo" ></div>
-        </td>
-        <td style="vertical-align:top;">
-          <div id="google"></div>
-        </td>
-      </tr>
-    </table>
-    <div id="angular">{{mapList}}</div>
-    
 
     <!-- modal -->
     <div class="modal fade" id="signinModal" tabindex="-1" role="dialog" aria-labelledby="signinModalLabel"
@@ -565,16 +419,15 @@
             </div>
             <!-- close button -->
             <!-- <button type="button" class="close pl-0" data-dismiss="modal" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button> -->
+            <span aria-hidden="true">&times;</span>
+          </button> -->
           </div>
-
+    
           <!-- modal body -->
           <div class="modal-body">
             <div class="form-group">
               <label class="sr-only" for="form-username">id</label>
-              <input type="text" name="form-username" placeholder="아이디" class="form-control bg-light border-0"
-                id="form-id">
+              <input type="text" name="form-username" placeholder="아이디" class="form-control bg-light border-0" id="form-id">
             </div>
             <div class="form-group m-0">
               <label class="sr-only" for="form-password">pw</label>
@@ -582,15 +435,16 @@
                 id="form-pw">
             </div>
           </div>
-
+    
           <!-- modal footer -->
           <div class="modal-footer border-top-0 pt-0">
             <div class="container-fluid">
               <div class="row d-flex justify-content-center pb-3">
-                <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">로그인</button>
+                <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal"
+                  ng-click="signin()">로그인</button>
               </div>
               <div class="row d-flex justify-content-center">
-                <a href="#">비밀번호를 잊어버리셨나요?</a><br>
+                <a href="#">아이디</a>&nbsp;<a href="#">비밀번호</a>&nbsp;찾기<br>
               </div>
               <div class="row d-flex justify-content-center">
                 계정이 없으신가요?&nbsp;<a href="/signup.go">회원가입</a>

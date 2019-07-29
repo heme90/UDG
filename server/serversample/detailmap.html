@@ -37,12 +37,12 @@
 
     <script>
         function ReadCookie() {
-            var allcookies = document.cookie;
-            console.log("모든쿠키값 : " + allcookies);
+        var allcookies = document.cookie;
+        console.log("모든쿠키값 : " + allcookies);
         }
         function getCookie(name) {
-            var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
-            return v ? v[2] : 'non-user';
+        var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+        return v ? v[2] : 'non-user';
         }
     </script>
 
@@ -51,7 +51,6 @@
         app.controller("myCtrl", function ($scope, $http, $sce) {
 
             $scope.m_map;
-            $scope.mapHtml;
 
             let mapno;
             var req = new XMLHttpRequest();
@@ -73,13 +72,64 @@
                 m_map = response.data;
                 var str = "<h3 class='m-0'>" + m_map.region + " " + m_map.mapname + "</h3>"
                 str += "<span>" + m_map.id + "</span>"
-                $scope.mapHtml = $sce.trustAsHtml(str);
                 initMap();
             }, function errorCallback(error) {
                 console.log("Error" + error);
             });
 
-            $scope.userForm = {};
+            sign()
+
+            $scope.signin = function () {
+                var signin_info = {
+                id: $("#form-id").val(),
+                pw: $("#form-pw").val()
+                }
+                $http({
+                method: 'POST',
+                url: '/signin.do',
+                timeout: 600000,
+                data: signin_info,
+                }).then(function successCallBack(response) {
+                ReadCookie();
+                sign()
+                }), function errorCallback(error) {
+                }
+            }
+
+            $scope.signout = function () {
+                // alert('signout')
+                var signout_info = {
+                id: getCookie('id'),
+                pw: getCookie('pw'),
+                email: getCookie('email')
+                }
+                $http({
+                method: 'POST',
+                url: '/signout.do',
+                timeout: 600000,
+                data: signout_info,
+                }).then(function successCallBack(response) {
+                ReadCookie();
+                sign()
+                }), function errorCallback(error) {
+                }
+            }
+
+            function sign() {
+                console.log("cookie id: " + getCookie('id'))
+                if (getCookie('id') != 'non-user') { // 로그인 된 상태일 경우
+                $('#signin-form').attr('class', 'btn p-0 dropdown');
+                $('#signin-form').attr('data-toggle', 'dropdown');
+                $('#signin-form').removeAttr('data-target');
+                $('#signin-form').attr('aria-expanded', 'true');
+                } else { // 로그인 안한 상태일 경우
+                $('#signin-form').attr('class', 'btn p-0');
+                $('#signin-form').attr('data-toggle', 'modal');
+                $('#signin-form').attr('data-target', '#signinModal');
+                $('#signin-form').removeAttr('aria-expanded');
+                }
+            }
+
 
             // 지도 팔로우하기 
             $scope.add = function () {
@@ -159,17 +209,15 @@
             m_markers = m_map['markers'];
             currMarker = -1;
 
+            $('#map_region').html(m_map['region']); // 몽고 지도 지역 가져오기
+            $('#map_name').html(m_map['mapname']); // 몽고 지도 제목 가져오기
+            $('#map_id').html(m_map['id']); // 몽고 지도 아이디 가져오기
+
             m_center = { "lat": Number(m_map['center'][1]), "lng": Number(m_map['center'][0]) }
             // 구글맵 지도 생성
             g_map = new google.maps.Map(document.getElementById('udgmap'), {
                 center: { lat: m_map['center'][1], lng: m_map['center'][0] }, // 지도 중심 좌표
                 zoom: m_map['zoom'] // 지도 배율. 숫자가 클 수록 확대됨
-            });
-
-            // 지도 왼쪽 클릭 이벤트
-            g_map.addListener('click', function (event) {
-                // g_map.panTo(event.latLng); // 구글맵 중심 이동
-                document.getElementById('location').innerHTML = event.latLng;
             });
 
             var show = true;
@@ -277,46 +325,55 @@
         <div class="row d-flex justify-content-center py-3 m-0 border-bottom">
             <!-- home -->
             <div class="col-1 d-flex justify-content-end align-items-center">
-                <a class="btn p-0" href="/mainpage.go">
-                    <i class="fas fa-home fa-lg" style="color: #555;"></i>
-                </a>
+            <a class="btn p-0" href="/mainpage.go">
+                <i class="fas fa-home fa-lg" style="color: #555;"></i>
+            </a>
             </div>
-
+    
             <!-- search -->
             <div class="col-3 p-0">
-                <div class="form-group d-flex align-items-center m-0">
-                    <span class="input-group-addon fas fa-search fa-sm"
-                        style="color:grey; position: relative; left:15px; z-index:1;">
-                    </span>
-                    <input type="search" class="form-control" id="search-input" placeholder="검색" aria-label="Search"
-                        spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"
-                        aria-owns="algolia-autocomplete-listbox-0" dir="auto"
-                        style="position: relative; right:7px; padding:3px 10px 3px 26px;">
-                </div>
+            <div class="form-group d-flex align-items-center m-0">
+                <span class="input-group-addon fas fa-search fa-sm"
+                style="color:grey; position: relative; left:15px; z-index:1;">
+                </span>
+                <input type="text" class="form-control" id="search-input" placeholder="검색" aria-label="Search"
+                spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"
+                aria-owns="algolia-autocomplete-listbox-0" dir="auto" value=""
+                style="position: relative; right:7px; padding:3px 10px 3px 26px;">
             </div>
-
+            </div>
+    
             <!-- user -->
             <div class="col-1 d-flex justify-content-start align-items-center">
-                <a class="btn p-0" href="#" data-toggle="modal" data-target="#signinModal">
-                    <i class="fas fa-user-alt fa-lg" style="color: #555;"></i>
-                </a>
+            <!-- signin -->
+            <a id="signin-form" class="btn p-0" href="#" data-toggle="modal" data-target="#signinModal">
+                <i class="fas fa-user-alt fa-lg" style="color: #555;"></i>
+            </a>
+            <ul class="dropdown-menu">
+                <li class="px-3">
+                <a href="/usermod.go">회원정보 수정</a>
+                </li>
+                <li class="px-3">
+                <a href="/" ng-click="signout()">로그아웃</a>
+                </li>
+            </ul>
             </div>
         </div>
-    </div>
-
-
-    <div class="container-fluid h-100 p-0 m-0 bg-light">
+        </div>
+    
+    
+        <div class="container-fluid h-100 p-0 m-0 bg-light">
         <!-- menu -->
         <div class="row d-flex justify-content-center py-3 m-0">
             <div class="col-sm-6">
-                <ul class="nav nav-justified">
-                    <li class="nav-item"><a href="/" class="text-black-50">전체 지도</a></li>
-                    <li class="nav-item"><a href="/mymap.go" class="text-black-50">나만의 지도</a></li>
-                    <li class="nav-item"><a href="/myfollowmap.go" class="text-black-50">팔로우</a></li>
-                </ul>
+            <ul class="nav nav-justified">
+                <li class="nav-item"><a href="/" class="text-black-50">전체 지도</a></li>
+                <li class="nav-item"><a href="/mymap.go" class="text-black-50">나만의 지도</a></li>
+                <li class="nav-item"><a href="/myfollowmap.go" class="text-black-50">팔로우</a></li>
+            </ul>
             </div>
         </div>
-    </div>
+        </div>
 
 
     <div class="container-fluid h-100 p-0 m-0 bg-light">
@@ -332,8 +389,11 @@
                                 <div class="container">
 
                                     <!-- map title -->
-                                    <div class="text-center" ng-bind-html="mapHtml"></div>
-
+                                    <h3 class="col-10">
+                                        <span id="map_id"></span>님의
+                                        <span id="map_region"></span>&nbsp;
+                                        <span id="map_name"></span>
+                                    </h3>
                                     <!-- map -->
                                     <div id="udgmap"></div>
 
@@ -358,61 +418,56 @@
 
         <!-- modal -->
         <div class="modal fade" id="signinModal" tabindex="-1" role="dialog" aria-labelledby="signinModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <!-- modal header -->
-                    <div class="modal-header border-bottom-0 pb-0">
-                        <div class="container-fluid">
-                            <div class="row d-flex justify-content-center">
-                                <h5 class="modal-title" id="signinModalLabel">우리 동네 지도</h5>
-                            </div>
-                            <div class="row d-flex justify-content-center">
-                                로그인
-                            </div>
-                        </div>
-                        <!-- close button -->
-                        <!-- <button type="button" class="close pl-0" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                        </button> -->
-                    </div>
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <!-- modal header -->
+            <div class="modal-header border-bottom-0 pb-0">
+                <div class="container-fluid">
+                <div class="row d-flex justify-content-center">
+                    <h5 class="modal-title" id="signinModalLabel">우리 동네 지도</h5>
+                </div>
+                <div class="row d-flex justify-content-center">
+                    로그인
+                </div>
+                </div>
+                <!-- close button -->
+                <!-- <button type="button" class="close pl-0" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button> -->
+            </div>
 
-                    <!-- modal body -->
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label class="sr-only" for="form-username">id</label>
-                            <input type="text" name="form-username" placeholder="아이디"
-                                class="form-control bg-light border-0" id="form-id">
-                        </div>
-                        <div class="form-group m-0">
-                            <label class="sr-only" for="form-password">pw</label>
-                            <input type="password" name="form-password" placeholder="패스워드"
-                                class="form-control bg-light border-0" id="form-pw">
-                        </div>
-                    </div>
-
-                    <!-- modal footer -->
-                    <div class="modal-footer border-top-0 pt-0">
-                        <div class="container-fluid">
-                            <div class="row d-flex justify-content-center pb-3">
-                                <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal"
-                                    ng-click="signin()">로그인</button>
-                            </div>
-                            <div class="row d-flex justify-content-center pb-3">
-                                <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal"
-                                    ng-click="signout()">로그아웃</button>
-                                <!--id = "logoutbutton"-->
-                            </div>
-                            <div class="row d-flex justify-content-center">
-                                <a href="#">비밀번호를 잊어버리셨나요?</a><br>
-                            </div>
-                            <div class="row d-flex justify-content-center">
-                                계정이 없으신가요?&nbsp;<a href="/signup.go">회원가입</a>
-                            </div>
-                        </div>
-                    </div>
+            <!-- modal body -->
+            <div class="modal-body">
+                <div class="form-group">
+                <label class="sr-only" for="form-username">id</label>
+                <input type="text" name="form-username" placeholder="아이디" class="form-control bg-light border-0"
+                    id="form-id">
+                </div>
+                <div class="form-group m-0">
+                <label class="sr-only" for="form-password">pw</label>
+                <input type="password" name="form-password" placeholder="패스워드" class="form-control bg-light border-0"
+                    id="form-pw">
                 </div>
             </div>
+
+            <!-- modal footer -->
+            <div class="modal-footer border-top-0 pt-0">
+                <div class="container-fluid">
+                <div class="row d-flex justify-content-center pb-3">
+                    <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal"
+                    ng-click="signin()">로그인</button>
+                </div>
+                <div class="row d-flex justify-content-center">
+                    <a href="#">아이디</a>&nbsp;<a href="#">비밀번호</a>&nbsp;찾기<br>
+                </div>
+                <div class="row d-flex justify-content-center">
+                    계정이 없으신가요?&nbsp;<a href="/signup.go">회원가입</a>
+                </div>
+                </div>
+            </div>
+            </div>
+        </div>
         </div>
 
         <!-- footer -->
