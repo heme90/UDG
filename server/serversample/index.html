@@ -452,6 +452,26 @@
       </div>
     </div>
   </footer>
+  <script>
+      var id = getCookie('id');
+      $("#Gotomain").click(function () {
+        window.location.href = '/';
+      });
+      $('#Gotomymap').click(function () {
+        if (id != "non-user") {
+          window.location.href = '/mymap.go';
+        } else {
+          alert('로그인이 필요한 서비스입니다');
+        }
+      });
+      $('#Gotomyfollowmap').click(function () {
+        if (id != "non-user") {
+          window.location.href = '/myfollowmap.go';
+        } else {
+          alert('로그인이 필요한 서비스입니다');
+        }
+      });
+  </script>
 </body>
 
 </html>
