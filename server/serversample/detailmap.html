@@ -47,9 +47,12 @@
     </script>
 
     <script>
+        var isFollowing;
+        var m_map;
+        
         var app = angular.module("myApp", []);
-        app.controller("myCtrl", function ($scope, $http, $sce) {
-
+        app.controller("myCtrl", function ($scope, $http, $compile) {
+            
             $scope.m_map;
 
             let mapno;
@@ -58,21 +61,26 @@
             req.send(null);
             mapno = req.getResponseHeader('mapno');
             currentUser = getCookie('id');
-            console.log(mapno, 'currentUser', currentUser);
+            
+            if (currentUser == 'non-user') {
+                currentUser = null
+            }
+            console.log('mapno', mapno, 'currentUser', currentUser);
 
             $http({
-                method: 'GET', // HTTP 통신 방법
+                method: 'POST', // HTTP 통신 방법
                 url: "/detailmap.do", // 통신 할 URL
                 timeout: 600000, // 1000 = 1초
-                params: { // 보낼 변수
-                    mapno: mapno
+                data: { // 보낼 변수
+                    id: currentUser,
+                    mapno: Number(mapno)
                 }
             }).then(function successCallBack(response) {
                 console.log("Success");
-                m_map = response.data;
-                var str = "<h3 class='m-0'>" + m_map.region + " " + m_map.mapname + "</h3>"
-                str += "<span>" + m_map.id + "</span>"
+                m_map = response.data.map;
+                isFollowing = response.data.isFollowing;
                 initMap();
+                followBtn();
             }, function errorCallback(error) {
                 console.log("Error" + error);
             });
@@ -97,7 +105,6 @@
             }
 
             $scope.signout = function () {
-                // alert('signout')
                 var signout_info = {
                 id: getCookie('id'),
                 pw: getCookie('pw'),
@@ -130,81 +137,99 @@
                 }
             }
 
+            function sign() {
+                console.log("cookie id: " + getCookie('id'))
+                if (getCookie('id') != 'non-user') { // 로그인 된 상태일 경우
+                    $('#signin-form').attr('class', 'btn p-0 dropdown');
+                    $('#signin-form').attr('data-toggle', 'dropdown');
+                    $('#signin-form').removeAttr('data-target');
+                    $('#signin-form').attr('aria-expanded', 'true');
+                } else { // 로그인 안한 상태일 경우
+                    $('#signin-form').attr('class', 'btn p-0');
+                    $('#signin-form').attr('data-toggle', 'modal');
+                    $('#signin-form').attr('data-target', '#signinModal');
+                    $('#signin-form').removeAttr('aria-expanded');
+                }
+            }
+        });
+    </script>
 
-            // 지도 팔로우하기 
-            $scope.add = function () {
-                alert('add 호출 ')
-                console.log('add function', m_map.mapno, m_map.id, currentUser)
+    <script>
+        // 지도 팔로우하기 
+        function followMap() {
+            if (currentUser) {
                 var tofollow = {
                     mapno: m_map.mapno,
                     c_id: m_map.id,
                     id: currentUser
                 };
-                // var sendData = $.param(tofollow);
-                $http({
-                    method: 'POST', // HTTP 통신 방법
+    
+                $.ajax({
+                    type: 'POST', // HTTP 통신 방법
                     url: "/followmap.do", // 통신 할 URL
-                    timeout: 600000, // 1000 = 1초
-                    data: tofollow // 보낼 데이터 객체 
-                }).then(function successCallBack(response) {
-                    console.log("================Success following", response);
-                }, function errorCallback(error) {
-                    console.log("================Error" + error);
+                    data: JSON.stringify(tofollow), // 보낼 데이터 객체 
+                    success: function(response) {
+                        console.log("@@@")
+                        isFollowing = true;
+                        m_map['cnt_follow'] = m_map['cnt_follow'] + 1;
+                        $('#map_cntfollow').html("팔로워 수 " + m_map['cnt_follow']); // 몽고 지도 아이디 가져오기
+                        followBtn();
+                    },
+                    error: function(error) {
+                        console.log("Error" + error);
+                    }
                 });
-                initMap();
             }
+        }
 
+        // 지도 언팔로우하기 
+        function unfollowMap() {
+            if (currentUser) {
+                var tounfollow = {
+                    mapno: m_map.mapno,
+                    c_id: m_map.id,
+                    id: currentUser
+                };
+                $.ajax({
+                    type: 'POST', // HTTP 통신 방법
+                    url: "/unfollowmap.do", // 통신 할 URL
+                    data: JSON.stringify(tounfollow), // 보낼 데이터 객체 
+                    success: function(response) {
+                        console.log("***")
+                        isFollowing = false;
+                        m_map['cnt_follow'] = m_map['cnt_follow'] - 1;
+                        $('#map_cntfollow').html("팔로워 수 " + m_map['cnt_follow']); // 몽고 지도 아이디 가져오기
+                        followBtn();
+                    },
+                    error: function(error) {
+                        console.log("Error" + error);
+                    }
+                });
+            }
+        }
 
-            $scope.signin = function () {
-                var signin_info = {
-                    id: $("#form-id").val(),
-                    pw: $("#form-pw").val()
-                }
-                console.log("--------signin!!!", signin_info)
-                $http({
-                    method: 'POST',
-                    url: '/signin.do',
-                    timeout: 600000,
-                    data: signin_info,
-                }).then(function successCallBack(response) {
-                    console.log("=============로그인 !!!! ", response.data)
-                    ReadCookie();
-                }), function errorCallback(error) {
-                    console.error("============로그인 에러", error)
+        function followBtn() {
+                if (isFollowing == true) { // 팔로우 하는 지도일 경우
+                    // $('#followBtn').replaceWith($('#followBtn'));
+                    $('#followBtn').attr('class', 'btn-primary p-0 m-0 circle');
+                    $('#followBtn').attr('onclick', 'unfollowMap()');
+                    // $compile($('#followBtn'))($scope);
+                } else { // 팔로우 하지 않는 지도일 경우
+                    // $('#followBtn').replaceWith($('#followBtn'));
+                    $('#followBtn').attr('class', 'btn-secondary p-0 m-0 circle');
+                    $('#followBtn').attr('onclick', 'followMap()');
+                    // $compile($('#followBtn'))($scope);
                 }
             }
-
-            $scope.signout = function () {
-                // alert('signout')
-                var signout_info = {
-                    id: getCookie('id'),
-                    pw: getCookie('pw'),
-                    email: getCookie('email')
-                }
-                console.log("--------signout!!!", signout_info)
-                $http({
-                    method: 'POST',
-                    url: '/signout.do',
-                    timeout: 600000,
-                    data: signout_info,
-                }).then(function successCallBack(response) {
-                    console.log("===============로그아웃!!!!!", response.data)
-                    ReadCookie();
-                }), function errorCallback(error) {
-                    console.error("=================로그아웃 에러 ", error)
-                }
-            }
-
-        });
     </script>
 
     <script>
         var m_markers; // 몽고와 연동되는 마커
-
+        
         var g_map; // 구글맵의 지도
         var g_markers = []; // 구글맵에 올릴 마커
         var currMarker; // 현재 마커를 가리키는 인덱스
-
+        
         function initMap() {
             m_markers = m_map['markers'];
             currMarker = -1;
@@ -212,6 +237,7 @@
             $('#map_region').html(m_map['region']); // 몽고 지도 지역 가져오기
             $('#map_name').html(m_map['mapname']); // 몽고 지도 제목 가져오기
             $('#map_id').html(m_map['id']); // 몽고 지도 아이디 가져오기
+            $('#map_cntfollow').html("팔로워 수 " + m_map['cnt_follow']); // 몽고 지도 아이디 가져오기
 
             m_center = { "lat": Number(m_map['center'][1]), "lng": Number(m_map['center'][0]) }
             // 구글맵 지도 생성
@@ -367,9 +393,9 @@
         <div class="row d-flex justify-content-center py-3 m-0">
             <div class="col-sm-6">
             <ul class="nav nav-justified">
-                <li class="nav-item"><a href="/" class="text-black-50">전체 지도</a></li>
-                <li class="nav-item"><a href="/mymap.go" class="text-black-50">나만의 지도</a></li>
-                <li class="nav-item"><a href="/myfollowmap.go" class="text-black-50">팔로우</a></li>
+                <li class="nav-item"><div id="Gotomain" class="text-black-50">전체 지도</div></li>
+                <li class="nav-item"><div id="Gotomymap" class="text-black-50">나만의 지도</div></li>
+                <li class="nav-item"><div id="Gotomyfollowmap" class="text-black-50">팔로우</div></li>
             </ul>
             </div>
         </div>
@@ -389,11 +415,28 @@
                                 <div class="container">
 
                                     <!-- map title -->
-                                    <h3 class="col-10">
-                                        <span id="map_id"></span>님의
-                                        <span id="map_region"></span>&nbsp;
-                                        <span id="map_name"></span>
-                                    </h3>
+                                    <div class="row pb-3">
+                                        <div class="col-9 d-flex align-items-center">
+                                            <h3 class="mt-2 mb-0">
+                                                <span id="map_id"></span>님의
+                                                <span id="map_region"></span>&nbsp;
+                                                <span id="map_name"></span>
+                                            </h3>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="container">
+                                                <div class="row d-flex justify-content-end pb-1">
+                                                    <span id="map_cntfollow" class="text-secondary"></span>
+                                                </div>
+                                                <div class="row d-flex justify-content-end">
+                                                    <button id="followBtn" class="btn btn-secondary p-0 m-0 circle" style="width: 34px; height: 34px; border-radius: 50%;" onclick="">
+                                                        <i class="fas fa-user-check" style="color: white; margin: 0 0 0 2px;"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                     <!-- map -->
                                     <div id="udgmap"></div>
 
@@ -480,5 +523,24 @@
         </footer>
 
 </body>
-
+<script>
+    var id = getCookie('id');
+    $("#Gotomain").click(function () {
+        window.location.href = '/';
+    });
+    $('#Gotomymap').click(function () {
+        if (id != "non-user") {
+        window.location.href = '/mymap.go';
+        } else {
+        alert('로그인이 필요한 서비스입니다');
+        }
+    });
+    $('#Gotomyfollowmap').click(function () {
+        if (id != "non-user") {
+        window.location.href = '/myfollowmap.go';
+        } else {
+        alert('로그인이 필요한 서비스입니다');
+        }
+    });
+    </script>
 </html>

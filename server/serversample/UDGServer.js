@@ -218,15 +218,15 @@ const followmap_add = function (db, id, c_id, mapno, callback) {
   //get user collection
   var collection = db.collection('user');
   //update user document
-  collection.updateOne({ id: id }
-      , { $push: { "followmap.mapno": mapno }}, {upsert: true} , function (err, result) {
-          if (err) {
-              console.error(err);
-          } else {
-              console.log('follow add 성공 ')
-              followcnt_inc(db, c_id, mapno); //cnt_follow increase by 1
-          }
-      });
+  collection.updateOne({ id: id }, { $push: { "followmap.mapno": mapno }}, {upsert: true},
+    function (err, result) {
+      if (err) {
+        console.error(err);
+      } else {
+        console.log('follow map 성공 ')
+        followcnt_inc(db, c_id, mapno); //cnt_follow increase by 1
+      }
+    });
 }
 
 //9-2: 팔로우한 지도의 팔로우 카운트 +1 
@@ -234,11 +234,40 @@ const followcnt_inc = function (db, id, mapno, callback) {
   //get udgmap collection
   var collection = db.collection('udgmap');
   //cnt_follow +1
-  collection.updateOne({ $and: [{ id: id }, { mapno: mapno }] }, { $inc: { cnt_follow: 1 } }, function (err, result) {
+  collection.updateOne({ $and: [{ id: id }, { mapno: mapno }] }, { $inc: { cnt_follow: 1 } },
+    function (err, result) {
       if (err) {
           console.error(err);
       } else {
           console.log('increased cnt_follow by 1');
+      }
+  });
+}
+
+const followmap_delete = function (db, id, c_id, mapno, callback) {
+  //get user collection
+  var collection = db.collection('user');
+  //update user document
+  collection.updateOne({ "id" : id }, { $pull: { "followmap.mapno" : mapno } },
+  function (err, result) {
+    if (err) {
+        console.error(err);
+    } else {
+        console.log('unfollow map 성공');
+        followcnt_dec(db, c_id, mapno);
+    }
+  });
+}
+const followcnt_dec = function (db, id, mapno, callback) {
+  //get udgmap collection
+  var collection = db.collection('udgmap');
+  //cnt_follow +1
+  collection.updateOne({ $and: [{ id: id }, { mapno: mapno }] }, { $inc: { cnt_follow: -1, "metrics.orders": 1 } },
+    function (err, result) {
+      if (err) {
+          console.error(err);
+      } else {
+          console.log('decreased cnt_follow by 1');
       }
   });
 }
@@ -351,13 +380,33 @@ const detailmap = function (db, mapno, callback) {
       if (err) {
           console.error(err);
       } else {
-          console.log("mapdetail :", util.inspect(mapdetail, { depth: 5 }));
+          // console.log("mapdetail :", util.inspect(mapdetail, { depth: 5 }));
           // return the result
           return callback(null, mapdetail);
       }
   });
 }
 
+const isFollowing = function (db, id, mapno, callback) {
+  var collection = db.collection('user');
+
+  collection.findOne({ id: id }, { projection: { _id: 0, followmap: 1 } })
+    .then((result) => { //{ followmap: { mapno: [ 3, 4 ] } }
+    
+      var isFollowing = false;
+      if (result){
+        var nums = Array.from(new Set(result.followmap.mapno)); // 중복제거  
+  
+        for (i = 0; i < nums.length; i++) {
+          if (nums[i] == mapno) {
+            isFollowing = true;
+            break;
+          }
+        }
+      }
+      return callback(null, isFollowing);
+    });
+}
 
 
 
@@ -665,27 +714,40 @@ var server = http.createServer(function (req, res) {   //create web server
   } 
     else if (_url.startsWith("/followmap.do")) {
       let body;
-      var post;
       if (req.method === 'POST') {
-          req.on('data', data => {
-              body = data.toString();
+        req.on('data', data => {
+          body = data.toString();
+        });
+        req.on('end', () => {
+          var post = qs.parse(body);
+          post = JSON.parse(Object.keys(post)[0]);
+          console.log(post);
+          followmap_add(db, post.id, post.c_id, post.mapno, function (err, result) {
+            if (err) {
+              console.error(err);
+            }
           });
-          req.on('end', () => {
-              post = JSON.parse(body);
-              id = post.id;
-              c_id = post.c_id;
-              mapno = post.mapno;
-              console.log("followmap.do here!!!!==========",post);
-              followmap_add(db, id, c_id, mapno, function(err, result){
-                  //var result = JSON.stringify({result : result})
-                  // console.log(result);
-                  if(err){
-                      console.error(err);
-                  }
-                  console.log(result);
-                  res.end(result); // 브라우저로 전송
-              });
+          res.end('ok'); //브라우저로 전송
+        });
+      }
+    }
+    else if (_url.startsWith("/unfollowmap.do")) {
+      let body;
+      if (req.method === 'POST') {
+        req.on('data', data => {
+          body = data.toString();
+        });
+        req.on('end', () => {
+          var post = qs.parse(body);
+          post = JSON.parse(Object.keys(post)[0]);
+          console.log(post);
+          followmap_delete(db, post.id, post.c_id, post.mapno, function (err, result) {
+            if (err) {
+              console.error(err);
+            }
           });
+          res.end('ok'); //브라우저로 전송
+        });
       }
     }
     //지도 검색
@@ -724,14 +786,30 @@ var server = http.createServer(function (req, res) {   //create web server
           res.end(data, 'utf-8'); // 브라우저로 전송
       });
   }
-  else if(_url.startsWith("/detailmap.do")){
-      
-      console.log('here we are with '+ query.mapno)
-      detailmap(db, Number(query.mapno), function(err, mapdetail){
-          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-          res.end(JSON.stringify(mapdetail[0]));
-      })
-  }
+    else if (_url.startsWith("/detailmap.do")) {
+      let body;
+      var result = {};
+      if (req.method === 'POST') {
+        req.on('data', data => {
+          body = data.toString();
+        });
+        req.on('end', () => {
+          var post = JSON.parse(body);
+          console.log(post);
+          detailmap(db, post.mapno, function (err, mapdetail) {
+            console.log("지도: " + mapdetail[0]);
+            result.map = mapdetail[0];
+
+            isFollowing(db, post.id, post.mapno, function (err, isFollowing) {
+              console.log("결과: " + isFollowing);
+              result.isFollowing = isFollowing;
+              result = JSON.stringify(result);
+              res.end(result, 'utf-8');
+            });
+          });
+        });
+      }
+    }
     // 전체 회원 목록
     else if (_url.startsWith("/userlist.do")) {
       findAllUser(db, function (err, result) {
@@ -749,6 +827,7 @@ var server = http.createServer(function (req, res) {   //create web server
         //예상치 못한 예외 처리
         console.log('uncaughtException 발생 : ' + err);
         res.writeHead(302, { 'Location': '/' })
+        res.end();
     });
 
 });
