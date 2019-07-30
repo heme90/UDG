@@ -197,19 +197,19 @@ const deletemapById = function (db, id, callback) {
   collection.find({id: id}).toArray(function(err, result){
     if(err){
       console.error(err);
-    } else if(result==[]){
-      console.log('삭제할 지도가 없습니다');
-      return callback(null, result);
-    } else {
+    } else if(result.length>0){
+      console.log(id,'의 지도를 삭제합니다');
       collection.deleteMany({ id: id }, function (err, rs) {
         assert.equal(err, null);
         // return the result
         return callback(null, rs);
       });
+    } else {
+      console.log('삭제할', id, '의 지도가 없습니다');
+      return callback(null, result);
     }
   })
 }
-
 
   
 //9. followmap.do : add a map to the user's follow field
@@ -537,10 +537,13 @@ var server = http.createServer(function (req, res) {   //create web server
         req.on('end', () => {
           var post = JSON.parse(body);
           console.log(post);
-          deleteUser(db, post.delUser, function (err, result) {
-            var result = JSON.stringify({ result: result })
-            console.log("결과: " + result);
-          });
+          deleteUser(db, post.delUser, function(err, result){
+            if(err){
+              console.error(err);
+            } else {
+              console.log("====================회원 및 지도 삭제 성공");
+            }
+          })
         });
       }
       res.end('ok'); // 브라우저로 전송
