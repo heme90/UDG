@@ -146,6 +146,113 @@
       }
     });
   </script>
+
+  <!--validation-->
+  <script>
+
+  // 정규식 
+    var re_idpw = /^[a-zA-Z0-9]{4,15}$/ // 아이디와 패스워드 검사 정규식
+    var re_email = /^[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*.[a-zA-Z]{2,3}$/i; // 이메일 검사 정규식
+
+    // 정규식 검사 수행
+    function check(re, what) {
+      if (re.test(what.value)) {
+        return true;
+      }
+      return false;
+    }
+    // email 중복확인 버튼 중복 클릭 방지
+    function doubleConfirmCheck(flag) { // 최초 1회 시만 confirm 함수 수행 
+      if (flag) { //flag가 true라면 이미 중복검사가 완료됨
+        alert('중복 확인이 된 id입니다.')
+        return flag;
+      } else { //false라면 중복확인을 아직 안했으므로 그냥 패스 
+        return false;
+      }
+    }
+
+  // pw validation
+    var pw = "";
+    var pwcheck = "";
+    function validatePw() { // 최초 비밀번호 입력시 입력 형태 검사
+      pw = document.getElementById("pw");
+      //pw 양식 확인
+      chkrs = check(re_idpw, pw)
+      if (!chkrs) { //양식에 부합하지 않는다면 
+        document.getElementById("pw_valid_rs").innerHTML = "4~15자의 영문 대소문자와 숫자만 입력하세요";
+        return false;
+      } else {
+        document.getElementById("pw_valid_rs").innerHTML = "";
+        return false;
+      }
+    }
+    function verifyPw() { //동일한 비밀번호를 적었는지 확인 
+      pwcheck = document.getElementById("pwcheck");
+      if (pwcheck.value != "" && pw.value == pwcheck.value) {
+        document.getElementById("pw_verify_rs").innerHTML = "";
+        return false;
+      } else {
+        document.getElementById("pw_verify_rs").innerHTML = '비밀번호가 맞지 않습니다';
+        return false;
+      }
+    }
+
+  //email validation
+  var email_old = getCookie("email");
+  var email_new = "";
+  var emailFlag = false;
+  function validateEmail() {
+    email_new = document.getElementById("email");
+    if (email_new.value == "") {
+      document.getElementById("email_valid_rs").innerHTML = "";
+    } else { // email값이 비어있지 않을 때
+      if (email_old != email_new) { // email 입력 내용에 변화가 있다면
+        //중복 확인 여부를 false로 설정
+        emailFlag = false;
+        // id양식 확인
+        chkrs = check(re_email, email_new);
+        if (!chkrs) { // id 양식이 맞지 않으면
+          email_new = ""; // 양식이 맞지 않은 상태의 중복 확인 방지 
+          document.getElementById("email_valid_rs").innerHTML = "다음과 같이 작성해주세요 ex) hi@udg.com";
+        } else if (!emailFlag) { // 적합한 아이디인데 중복확인 하지 않았다면
+          document.getElementById("email-addon").disabled = false;
+          document.getElementById("email_valid_rs").innerHTML = "중복확인을 해 주세요";
+          return false;
+        }
+      }
+    } // else end
+  }
+
+  //email 중복확인
+  function confirmEmail() {
+      if (doubleConfirmCheck(emailFlag)) { // true일 시 수행하지 않음
+        return false;
+      } else if (email_new.value != "") { //false라면 수행한 후 idFlag에 true전달
+        //console.log('confirmEmail')
+        //console.log(email_new.value)
+        $.ajax({
+          method: "POST",
+          url: "/finduseremail.do",
+          data: {
+            email: email_new.value
+          },
+          timeout: 600000
+        }).done(function (result) {
+          if (result == 'notused') {
+            document.getElementById("email_valid_rs").innerHTML = "사용 가능한 이메일입니다";
+            email_old = email_new.value;
+            emailFlag = true;
+          } else {
+            document.getElementById("email_valid_rs").innerHTML = "이미 사용중인 이메일입니다";
+          }
+        }).fail(function (err) {
+          console.error(err)
+        })
+      } else {
+        document.getElementById("email_valid_rs").innerHTML = "다음과 같이 작성해주세요 ex) hi@udg.com";
+      }
+    }
+  </script>
 </head>
 
 <body ng-controller="myCtrl">
@@ -216,9 +323,21 @@
             <div class="col-6">
               <form class="form-group">
                 <input type="text" class="form-control mb-2" placeholder="아이디" ng-model="userForm.id" ng-readonly="true">
-                <input type="password" class="form-control mb-2" placeholder="비밀번호" ng-model="userForm.pw">
-                <input type="password" class="form-control mb-2" placeholder="비밀번호 확인">
-                <input type="text" class="form-control mb-2" placeholder="이메일" ng-model="userForm.email">
+                <input type="password" class="form-control mb-2" placeholder="비밀번호" name="pw" id ="pw" ng-model="userForm.pw" onkeyup="validatePw()" ng-required="true" />
+                            <div id="pw_valid_rs" class="mb-2"></div>
+
+                            <input type="password" class="form-control mb-2" name="pwcheck" id="pwcheck" ng-model="userForm.pwcheck" placeholder="비밀번호 확인" onkeyup="verifyPw()" ng-required="true" />
+                            <div id="pw_verify_rs" class="mb-2"></div>
+
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" placeholder="이메일" name="email" id ="email" ng-model="userForm.email"  onkeyup="validateEmail()" ng-required="true" />
+                                <div class="input-group-append">
+                                    <button class="btn text-white" type="button" id="email-addon" style="background-color: #adb5bd;" disabled="true" onclick="confirmEmail()">
+                                            중복확인
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="email_valid_rs" class="mb-2"></div>
 
                 <div class="row">
                   <div class="col-6 pr-2">
