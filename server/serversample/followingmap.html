@@ -46,27 +46,36 @@
   </script>
 
   <script>
+    var isFollowing;
     var app = angular.module("myApp", []);
     app.controller("myCtrl", function ($scope, $http) {
 
       $scope.mapList;
       
-      $http({
-        method: 'GET', // HTTP 통신 방법
-        url: "/myfollowmap.do", // 통신 할 URL
-        timeout: 600000, // 1000 = 1초
-        params: { // 보낼 변수
-          id: getCookie('id')
-        }
-      }).then(function successCallBack(response) {
-        console.log("Success: follow map load");
-        $scope.mapList = response.data.result;
-        m_maps = response.data.result;
-        console.log(response.data);
-        initMap();
-      }, function errorCallback(error) {
-        console.log("Error" + error);
-      });
+      if (getCookie('id') != 'non-user') {
+        $http({
+          method: 'GET', // HTTP 통신 방법
+          url: "/myfollowmap.do", // 통신 할 URL
+          timeout: 600000, // 1000 = 1초
+          params: { // 보낼 변수
+            id: getCookie('id')
+          }
+        }).then(function successCallBack(response) {
+          console.log("Success: follow map load");
+          $scope.mapList = response.data.result;
+          m_maps = response.data.result;
+          console.log("test: " + $scope.mapList);
+          if (m_maps == null) {
+            $('#map-content').html("아직 팔로우한 지도가 없습니다.<br>전체 지도에서 지도를 팔로우해주세요!");
+          } else {
+            isFollowing = true;
+            initMap();
+            followBtn();
+          }
+        }, function errorCallback(error) {
+          console.log("Error" + error);
+        });
+      }
      
       sign()
 
@@ -156,6 +165,7 @@
       $('#map_region').html(m_map['region']); // 몽고 지도 지역 가져오기
       $('#map_name').html(m_map['mapname']); // 몽고 지도 제목 가져오기
       $('#map_id').html(m_map['id']); // 몽고 지도 아이디 가져오기
+      $('#map_cntfollow').html("팔로워 수 " + m_map['cnt_follow']); // 몽고 지도 아이디 가져오기
 
       if (visibility == false) { // 비공개
         $('#unlock').hide();
@@ -283,6 +293,72 @@
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo"
     async defer></script>
 
+  <script>
+    // 지도 팔로우하기 
+    function followMap() {
+      if (getCookie('id') != 'non-user') {
+        var tofollow = {
+          mapno: m_map.mapno,
+          c_id: m_map.id,
+          id: getCookie('id')
+        };
+
+        $.ajax({
+          type: 'POST', // HTTP 통신 방법
+          url: "/followmap.do", // 통신 할 URL
+          data: JSON.stringify(tofollow), // 보낼 데이터 객체 
+          success: function (response) {
+            console.log("@@@")
+            isFollowing = true;
+            m_map['cnt_follow'] = m_map['cnt_follow'] + 1;
+            $('#map_cntfollow').html("팔로워 수 " + m_map['cnt_follow']); // 몽고 지도 아이디 가져오기
+            followBtn();
+          },
+          error: function (error) {
+            console.log("Error" + error);
+          }
+        });
+      }
+    }
+
+    // 지도 언팔로우하기 
+    function unfollowMap() {
+      if (getCookie('id') != 'non-user') {
+        var tounfollow = {
+          mapno: m_map.mapno,
+          c_id: m_map.id,
+          id: getCookie('id')
+        };
+        $.ajax({
+          type: 'POST', // HTTP 통신 방법
+          url: "/unfollowmap.do", // 통신 할 URL
+          data: JSON.stringify(tounfollow), // 보낼 데이터 객체 
+          success: function (response) {
+            console.log("***")
+            isFollowing = false;
+            m_map['cnt_follow'] = m_map['cnt_follow'] - 1;
+            $('#map_cntfollow').html("팔로워 수 " + m_map['cnt_follow']); // 몽고 지도 아이디 가져오기
+            followBtn();
+          },
+          error: function (error) {
+            console.log("Error" + error);
+          }
+        });
+      }
+    }
+
+    function followBtn() {
+      if (isFollowing == true) { // 팔로우 하는 지도일 경우
+        $('#followBtn').attr('class', 'btn-primary p-0 m-0 circle');
+        $('#followBtn').attr('onclick', 'unfollowMap()');
+      } else { // 팔로우 하지 않는 지도일 경우
+        $('#followBtn').attr('class', 'btn-secondary p-0 m-0 circle');
+        $('#followBtn').attr('onclick', 'followMap()');
+      }
+    }
+  
+  </script>
+
 </head>
 
 <body ng-controller="myCtrl">
@@ -344,12 +420,12 @@
 
 
   <div class="container-fluid h-100 p-0 m-0 bg-light">
-    <!-- my map -->
+    <!-- follow map -->
     <div class="row d-flex justify-content-center m-0">
       <div class="col-lg-10 mx-4">
 
-        <div class="row d-flex justify-content-center">
-          <!--  -->
+        <div id="map-content" class="row d-flex justify-content-center">
+          <!-- map-content -->
           <div class="col-sm-4">
             <div class="row mb-2 d-flex justify-content-between align-items-center">
               <div class="col-9">
@@ -373,13 +449,27 @@
             <div class="container p-0">
               <div class="row">
                 <div class="container">
-
-                  <!-- map title -->
-                  <h3 class="col-10">
-                      <span id="map_id"></span>님의
-                      <span id="map_region"></span>&nbsp;
-                      <span id="map_name"></span>
-                  </h3>
+                  <div class="row pb-3">
+                      <div class="col-9 d-flex align-items-center">
+                          <h3 class="mt-2 mb-0">
+                              <span id="map_id"></span>님의
+                              <span id="map_region"></span>
+                              <span id="map_name"></span>
+                          </h3>
+                      </div>
+                      <div class="col-3">
+                          <div class="container">
+                              <div class="row d-flex justify-content-end pb-1">
+                                  <span id="map_cntfollow" class="text-secondary"></span>
+                              </div>
+                              <div class="row d-flex justify-content-end">
+                                  <button id="followBtn" class="btn btn-secondary p-0 m-0 circle" style="width: 34px; height: 34px; border-radius: 50%;" onclick="">
+                                      <i class="fas fa-user-check" style="color: white; margin: 0 0 0 2px;"></i>
+                                  </button>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
 
                   <!-- map -->
                   <div id="udgmap"></div>

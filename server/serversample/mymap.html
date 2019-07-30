@@ -48,6 +48,7 @@
   <script>
     var app = angular.module("myApp", []);
     app.controller("myCtrl", function ($scope, $http) {
+
       sign()
 
       $scope.signin = function () {
@@ -103,21 +104,43 @@
 
       $scope.mapList;
     
-      $http({
-        method: 'GET', // HTTP 통신 방법
-        url: "/mymap.do", // 통신 할 URL
-        timeout: 600000, // 1000 = 1초
-        params: { // 보낼 변수
-          id: getCookie('id')
-        }
-      }).then(function successCallBack(response) {
-        console.log("Success: map load");
-        $scope.mapList = response.data.result;
-        m_maps = $scope.mapList;
-        initMap();
-      }, function errorCallback(error) {
-        console.log("Error" + error);
-      });
+      if (getCookie('id') != 'non-user') {
+        $http({
+          method: 'GET', // HTTP 통신 방법
+          url: "/mymap.do", // 통신 할 URL
+          timeout: 600000, // 1000 = 1초
+          params: { // 보낼 변수
+            id: getCookie('id')
+          }
+        }).then(function successCallBack(response) {
+          console.log("Success: map load");
+          $scope.mapList = response.data.result;
+          m_maps = $scope.mapList;
+          if (m_maps.length > 0) {
+            initMap();
+          } else {
+            var newMap = {
+              mapno: null,
+              id: getCookie('id'),
+              region: null,
+              mapname: "새로운 지도",
+              center: [126.979330, 37.531402],
+              zoom: 11,
+              visibility: false,
+              cnt_follow: 0,
+              markers: []
+            };
+    
+            $scope.mapList.push(newMap);
+            currMap = $scope.mapList.length-1;
+    
+            initMap();
+          }
+  
+        }, function errorCallback(error) {
+          console.log("Error" + error);
+        });
+      }
 
       // 지도 목록 삭제
       $scope.delMap = function (idx) {
@@ -126,7 +149,7 @@
           if (m_maps[idx]['mapno'] != null) { // 기존에 있던 지도라면 DB에서도 삭제
             $http({
               method: 'POST', // HTTP 통신 방법
-              url: "/deletemap.do", // 통신 할 URL
+              url: "/deletemapbyno.do", // 통신 할 URL
               timeout: 600000, // 1000 = 1초
               data: { // 보낼 데이터
                 mapno: m_maps[idx]['mapno']
@@ -167,7 +190,7 @@
 
           var newMap = {
             mapno: null,
-            id: "yunki",
+            id: getCookie('id'),
             region: null,
             mapname: "새로운 지도",
             center: [126.979330, 37.531402],
@@ -322,10 +345,8 @@
           setMapOnAll(g_map); // 구글맵 마커 그리기
           show = true;
         }
-        print();
       });
       
-      print();
       g_map.panTo(m_center); // 구글맵 중심 이동
     }
 
@@ -396,7 +417,6 @@
       markerCommon(marker); // 마커 공통 메서드
       currMarker = g_markers.length-1;
       setMapOnAll(g_map); // 구글맵 마커 그리기
-      print();
     }
 
     // 마커 이동
@@ -409,7 +429,6 @@
 
       currMarker = g_markers.length-1;
       setMapOnAll(g_map); // 구글맵 마커 그리기
-      print();
     }
 
     // 마커 전체 그리기
@@ -430,7 +449,6 @@
     function deleteAllMarker() {
       setMapOnAll(null); // 구글맵 마커 지우기
       g_markers = []; // 배열 초기화
-      print();
     }
 
     // 마커 한개 삭제
@@ -449,7 +467,6 @@
       currMarker = -1;
       move = false;
       setMapOnAll(g_map); // 구글맵 마커 그리기
-      print();
     }
 
     // 마커 설명 바꾸기
@@ -472,7 +489,6 @@
       move = false;
       setMapOnAll(g_map); // 구글맵 마커 그리기
       // g_map.panTo(marker.position); // 구글맵 중심 이동
-      print();
     }
 
     // 마커 공통 메서드
@@ -489,8 +505,6 @@
         // 설명 on
         marker.description.open(g_map, marker); // 마커에 말풍선 붙이기
         setMapOnAll(g_map); // 구글맵 마커 그리기
-
-        print();
       });
 
       // 마커 오른쪽 클릭 이벤트
@@ -511,7 +525,6 @@
         } else {
           $('#marker_desc').val(""); // 입력 폼 초기화
           renameMarker(g_markers[currMarker], desc); // 마커 설명 수정
-          print();
         }
       }
     }
@@ -522,7 +535,6 @@
         $('#marker_desc').val(""); // 입력 폼 초기화
         deleteMarker(g_markers[currMarker]);
       }
-      print();
     }
 
     // 공개여부
@@ -536,7 +548,6 @@
         $('#unlock').hide();
         $('#lock').show();
       }
-      print()
     }
     
     // 구글맵 마커를 몽고 마커 형식으로 변환
@@ -568,7 +579,6 @@
       m_map['markers'] = m_markers;
 
       m_maps[currMap] = m_map;
-      print();
     }
 
     function regionSearch() {
@@ -591,6 +601,7 @@
 
     /******************************/
 
+    /*
     function print() {
       document.getElementById('curr').innerHTML = "currMap: " + currMap + ", currMarker: " + currMarker;
 
@@ -616,7 +627,7 @@
         document.getElementById('google').innerHTML += "desc: " + g_markers[i]['description']['content'] + "<br>";
       }
     }
-
+    */
   </script>
 
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo"
@@ -687,8 +698,8 @@
     <div class="row d-flex justify-content-center m-0">
       <div class="col-lg-10 mx-4">
 
-        <div class="row d-flex justify-content-center">
-          <!--  -->
+        <div id="map-content" class="row d-flex justify-content-center">
+          <!-- map-content -->
           <div class="col-sm-4">
             <div class="row mb-2 d-flex justify-content-between align-items-center">
               <div class="col-9">
@@ -698,7 +709,7 @@
               </div>
               <div class="col-1 text-right p-0 mr-3">
                 <button class="btn btn-secondary p-0 m-0 circle" style="width: 32px; height: 32px; border-radius: 50%;" ng-click="addMap()">
-                  <i class="fas fa-plus fa-xs" style="color: white; margin: 0 1px 1px 1;"></i>
+                  <i class="fas fa-plus fa-xs" style="color: white; margin: 0 0 0 0;"></i>
                 </button>
               </div>
             </div>
@@ -706,7 +717,7 @@
             <!-- map list -->
             <ul class="pl-4">
               <li ng-repeat="item in mapList">
-                <a href="#" ng-click="viewMap($index)">{{item.region}} {{item.mapname}}</a>
+                <a href="#" ng-click="viewMap($index)">{{item.region}} {{item.mapname}} ({{item.cnt_follow}})</a>
                   <i class="fas fa-lock fa-xs pl-1" style="color: #adb5bd;" ng-if="item.visibility == false"></i>
                   <i class="fas fa-trash fa-xs pl-1" style="color: #adb5bd;" ng-click="delMap($index)"></i>
               </li>
@@ -776,6 +787,7 @@
       </div>
     </div>
 
+    <!--
     <div id="location">&nbsp;</div>
     <div id="curr">&nbsp;</div>
     <table cellpadding="10">
@@ -793,7 +805,8 @@
       </tr>
     </table>
     <div id="angular">{{mapList}}</div>
-    
+    -->
+  
 
     <!-- modal -->
     <div class="modal fade" id="signinModal" tabindex="-1" role="dialog" aria-labelledby="signinModalLabel"
