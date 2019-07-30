@@ -60,27 +60,25 @@ const signup = function(db, data, callback){
     });
   }
 //2-2 id 중복확인
-const findUserId = function (db, data, callback) {
+const findUserId = function (db, id, callback) {
   var collection = db.collection('user');
-
   collection.find({
-    id: data.id
-  }).toArray(function (err, result) {
-    console.log(result);
-    return callback(null, result)[0];
-  });
-}
-//2-3 email 중복확인
-const findUserEmail = function (db, data, callback) {
-  var collection = db.collection('user');
-
-  collection.find({
-    id: data.email
+    id: id
   }).toArray(function (err, result) {
     console.log(result);
     return callback(null, result[0]);
   });
 }
+//2-3 email 중복확인
+const findUserEmail = function (db, email, callback) {
+  var collection = db.collection('user');
+  collection.find({
+    email: email
+  }).toArray(function (err, result) {
+    return callback(null, result[0]);
+  });
+}
+
 
 //3. 회원 삭제
 const deleteUser = function (db, data, callback) {
@@ -528,16 +526,40 @@ var server = http.createServer(function (req, res) {   //create web server
     }
     else if (_url.startsWith("/finduserid.do")) {
       let body;
-      if (req.method === 'POST') {
+      if (req.method === "POST") {
         req.on('data', data => {
           body = data.toString();
+          console.log('body',body)
         });
         req.on('end', () => {
-          var post = JSON.parse(body);
-          console.log(post);
-          findUserId(db, query.id, function (err, result) {
-            var result = JSON.stringify({ result: result })
-            res.end(result, 'utf-8'); // 브라우저로 전송
+          var post = qs.parse(body);
+          findUserId(db, post.id, function (err, result) {
+            //console.log("여기서 확인", result.id)
+            if (result==undefined){
+              res.end('notused', 'utf-8');
+            } else {
+              res.end('used', 'utf-8'); // 브라우저로 전송
+            }
+          });
+        });
+      }
+    }
+    else if (_url.startsWith("/finduseremail.do")) {
+      let body;
+      if (req.method === "POST") {
+        req.on('data', data => {
+          body = data.toString();
+          console.log('body',body)
+        });
+        req.on('end', () => {
+          var post = qs.parse(body);
+          findUserEmail(db, post.email, function (err, result) {
+            //console.log("여기서 확인", result.email)
+            if (result==undefined){
+              res.end('notused', 'utf-8');
+            } else {
+              res.end('used', 'utf-8'); // 브라우저로 전송
+            }
           });
         });
       }
