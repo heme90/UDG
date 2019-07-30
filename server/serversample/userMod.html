@@ -126,13 +126,36 @@
         }
       };
 
-      $scope.reset = function() {
-        $scope.userForm = {
+      $scope.user_info = {
           id: getCookie('id'),
           pw: getCookie('pw'),
           email: getCookie('email')
         };
+      $scope.reset = function() {
+        $scope.userForm = $scope.user_info
       };
+
+      $scope.deleteUser = function(){
+        var del = confirm("탈퇴하시겠습니까?")
+        if (del == true) {
+          // DB에서 삭제
+          $http({
+            method: 'POST', // HTTP 통신 방법
+            url: "/deleteuser.do", // 통신 할 URL
+            timeout: 600000, // 1000 = 1초
+            data: { // 보낼 데이터
+              delUser: $scope.user_info
+            }
+          }).then(function successCallBack(response) {
+            console.log("Success: delete user");
+            $scope.signout();
+            window.location.href='/';
+          }, function errorCallback(error) {
+            console.log("Error" + error);
+          });
+        }
+        return false;
+      }
 
     });
   </script>
@@ -347,6 +370,9 @@
                     <button ng-click="reset()" class="btn btn-primary btn-block">취소</button>
                   </div>
                 </div>
+                  <div class="row d-flex justify-content-center pt-3">
+                    <div ng-click="deleteUser()">회원 탈퇴</div>
+                  </div>
               </form>
             </div>
           </div>
@@ -415,7 +441,5 @@
         </div>
       </div>
     </footer>
-
 </body>
-
 </html>
