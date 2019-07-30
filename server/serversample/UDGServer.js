@@ -177,7 +177,7 @@ const editmap = function (db, data, callback) {
 }
 
 
-//8. 지도 삭제 
+//8. 번호로 지도 삭제 
 const deletemapByNo = function (db, no, callback) {
   // get udbmap collection
   var collection = db.collection('udgmap');
