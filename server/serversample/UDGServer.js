@@ -80,20 +80,30 @@ const findUserEmail = function (db, email, callback) {
 }
 
 
-//3. 회원 삭제
+//3. 회원 삭제 + deletemapById 호출하여 그 회원이 만든 지도를 다 삭제
 const deleteUser = function (db, data, callback) {
-    // get udbmap collection
-    var collection = db.collection('user');
-    collection.deleteMany({
-      id: data.id,
-      pw: data.pw
-    }, function (err, result) {
-      assert.equal(err, null);
-
-      // return the result
-      return callback(null, result);
-    });
-  }
+  // get udbmap collection
+  var collection = db.collection('user');
+  collection.deleteMany({
+    id: data.id,
+    pw: data.pw
+  }, function (err, result) {
+    if(err){
+      console.error(err);
+    } else {
+      console.log(data.id,' 탈퇴 완료');
+      deletemapById(db, data.id, function(err, rs){
+        if(err){
+          console.error(err);
+        } else {
+          console.log(data.id, '의 지도 삭제 완료');
+          return callback(null, rs);
+        }
+      })
+    }
+    //return callback(null, result);
+  });
+}
 //4. 회원정보 수정  (pw, email)
 const updateUser = function (db, data, callback) {
     var collection = db.collection('user');
@@ -168,7 +178,7 @@ const editmap = function (db, data, callback) {
 
 
 //8. 지도 삭제 
-const deletemap = function (db, no, callback) {
+const deletemapByNo = function (db, no, callback) {
   // get udbmap collection
   var collection = db.collection('udgmap');
   collection.deleteMany({ mapno: no }, function (err, result) {
@@ -177,7 +187,29 @@ const deletemap = function (db, no, callback) {
     // return the result
     return callback(null, result);
   });
-}  
+}
+
+// 회원 탈퇴 시 해당 회원이 만든 지도들을 다 삭제 
+const deletemapById = function (db, id, callback) {
+  console.log('deletemapById')
+  // get udbmap collection
+  var collection = db.collection('udgmap');
+  collection.find({id: id}).toArray(function(err, result){
+    if(err){
+      console.error(err);
+    } else if(result==[]){
+      console.log('삭제할 지도가 없습니다');
+      return callback(null, result);
+    } else {
+      collection.deleteMany({ id: id }, function (err, rs) {
+        assert.equal(err, null);
+        // return the result
+        return callback(null, rs);
+      });
+    }
+  })
+}
+
 
   
 //9. followmap.do : add a map to the user's follow field
@@ -393,7 +425,7 @@ var server = http.createServer(function (req, res) {   //create web server
       }
       // res.end('ok'); // 브라우저로 전송
     }
-    else if (_url.startsWith("/deletemap.do")) {
+    else if (_url.startsWith("/deletemapbyno.do")) {
       let body;
       if (req.method === 'POST') {
         req.on('data', data => {
@@ -402,7 +434,24 @@ var server = http.createServer(function (req, res) {   //create web server
         req.on('end', () => {
           var post = JSON.parse(body);
           console.log(post);
-          deletemap(db, post.mapno, function (err, result) {
+          deletemapByNo(db, post.mapno, function (err, result) {
+            var result = JSON.stringify({ result: result })
+            console.log("결과: " + result);
+          });
+        });
+      }
+      res.end('ok'); // 브라우저로 전송
+    }
+    else if (_url.startsWith("/deletemapbyid.do")) {
+      let body;
+      if (req.method === 'POST') {
+        req.on('data', data => {
+          body = data.toString();
+        });
+        req.on('end', () => {
+          var post = JSON.parse(body);
+          console.log(post);
+          deletemapById(db, post.mapno, function (err, result) {
             var result = JSON.stringify({ result: result })
             console.log("결과: " + result);
           });
