@@ -27,120 +27,7 @@
   <!-- css -->
   <link rel="stylesheet" type="text/css" href="css/mycss.css">
 
-  <script>
-    function ReadCookie() {
-      var allcookies = document.cookie;
-      console.log("모든쿠키값 : " + allcookies);
-    }
-    function getCookie(name) {
-      var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
-      return v ? v[2] : 'non-user';
-    }
-  </script>
-
-  <script>
-    var app = angular.module("myApp", []);
-    app.controller("myCtrl", function ($scope, $http) {
-
-      $scope.mapList;
-
-      $http({
-        method: 'GET', // HTTP 통신 방법
-        url: "/mainpage.do", // 통신 할 URL
-        timeout: 600000 // 1000 = 1초
-      }).then(function successCallBack(response) {
-        $scope.mapList = response.data.allmap;
-        console.log($scope.mapList)
-      }, function errorCallback(error) {
-        console.log("Error" + error);
-      });
-
-      sign()
-
-      $scope.signin = function () {
-        var signin_info = {
-          id: $("#form-id").val(),
-          pw: $("#form-pw").val()
-        }
-        $http({
-          method: 'POST',
-          url: '/signin.do',
-          timeout: 600000,
-          data: signin_info,
-        }).then(function successCallBack(response) {
-          ReadCookie();
-          sign()
-        }), function errorCallback(error) {
-        }
-      }
-
-      $scope.signout = function () {
-        // alert('signout')
-        var signout_info = {
-          id: getCookie('id'),
-          pw: getCookie('pw'),
-          email: getCookie('email')
-        }
-        $http({
-          method: 'POST',
-          url: '/signout.do',
-          timeout: 600000,
-          data: signout_info,
-        }).then(function successCallBack(response) {
-          ReadCookie();
-          sign()
-        }), function errorCallback(error) {
-        }
-      }
-
-      function sign() {
-        console.log("cookie id: " + getCookie('id'))
-        if (getCookie('id') != 'non-user') { // 로그인 된 상태일 경우
-          $('#signin-form').attr('class', 'btn p-0 dropdown');
-          $('#signin-form').attr('data-toggle', 'dropdown');
-          $('#signin-form').removeAttr('data-target');
-          $('#signin-form').attr('aria-expanded', 'true');
-        } else { // 로그인 안한 상태일 경우
-          $('#signin-form').attr('class', 'btn p-0');
-          $('#signin-form').attr('data-toggle', 'modal');
-          $('#signin-form').attr('data-target', '#signinModal');
-          $('#signin-form').removeAttr('aria-expanded');
-        }
-      }
-
-      $scope.Gotodetail = function (mapno) {
-        window.location.href = '/detailmap.go?mapno=' + mapno;
-      }
-    });
-
-    $("#search-input").keypress(function (event) {
-      var keycode = (event.keyCode ? event.keyCode : event.which);
-      if (keycode == '13') {
-        $.ajax({
-          url: "https://maps.googleapis.com/maps/api/geocode/xml?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&address=" + $("#search-input").val(),
-          success: function (data) {
-            var location = data.getElementsByTagName("location")[0];
-            var lat = location.getElementsByTagName("lat")[0].textContent;
-            var lng = location.getElementsByTagName("lng")[0].textContent;
-            $http({
-              method: 'GET', // HTTP 통신 방법
-              url: "/searchmap.do", // 통신 할 URL
-              timeout: 600000, // 1000 = 1초
-              params: {
-                lat: lat,
-                lng: lng
-              }
-            }).then(function successCallBack(response) {
-              $scope.mapList = response.data.searchedMap;
-            }, function errorCallback(error) {
-              console.log("Error" + error);
-            });
-          }
-        });
-      }
-    });
-
-  </script>
+  
 
   <style>
     #search-input::-webkit-input-placeholder {
@@ -442,7 +329,120 @@
       </div>
     </div>
   </div>
+  <script>
+  function ReadCookie() {
+      var allcookies = document.cookie;
+      console.log("모든쿠키값 : " + allcookies);
+    }
+    function getCookie(name) {
+      var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+      return v ? v[2] : 'non-user';
+    }
+    var app = angular.module("myApp", []);
+    app.controller("myCtrl", function ($scope, $http) {
 
+      $scope.mapList;
+
+      $http({
+        method: 'GET', // HTTP 통신 방법
+        url: "/mainpage.do", // 통신 할 URL
+        timeout: 600000 // 1000 = 1초
+      }).then(function successCallBack(response) {
+        $scope.mapList = response.data.allmap;
+        console.log($scope.mapList)
+      }, function errorCallback(error) {
+        console.log("Error" + error);
+      });
+
+      sign()
+
+      $scope.signin = function () {
+        var signin_info = {
+          id: $("#form-id").val(),
+          pw: $("#form-pw").val()
+        }
+        $http({
+          method: 'POST',
+          url: '/signin.do',
+          timeout: 600000,
+          data: signin_info,
+        }).then(function successCallBack(response) {
+          ReadCookie();
+          sign()
+        }), function errorCallback(error) {
+        }
+      }
+
+      $scope.signout = function () {
+        // alert('signout')
+        var signout_info = {
+          id: getCookie('id'),
+          pw: getCookie('pw'),
+          email: getCookie('email')
+        }
+        $http({
+          method: 'POST',
+          url: '/signout.do',
+          timeout: 600000,
+          data: signout_info,
+        }).then(function successCallBack(response) {
+          ReadCookie();
+          sign()
+        }), function errorCallback(error) {
+        }
+      }
+
+      function sign() {
+        console.log("cookie id: " + getCookie('id'))
+        if (getCookie('id') != 'non-user') { // 로그인 된 상태일 경우
+          $('#signin-form').attr('class', 'btn p-0 dropdown');
+          $('#signin-form').attr('data-toggle', 'dropdown');
+          $('#signin-form').removeAttr('data-target');
+          $('#signin-form').attr('aria-expanded', 'true');
+        } else { // 로그인 안한 상태일 경우
+          $('#signin-form').attr('class', 'btn p-0');
+          $('#signin-form').attr('data-toggle', 'modal');
+          $('#signin-form').attr('data-target', '#signinModal');
+          $('#signin-form').removeAttr('aria-expanded');
+        }
+      }
+
+      $scope.Gotodetail = function (mapno) {
+        window.location.href = '/detailmap.go?mapno=' + mapno;
+      }
+    
+  
+  
+  
+  $("#search-input").keyup(function (event) {
+      var keycode = (event.keyCode ? event.keyCode : event.which);
+      if (keycode == '13') {
+        $.ajax({
+          url: "https://maps.googleapis.com/maps/api/geocode/xml?key=AIzaSyALaiOdg7PNapbNpME1I4A0X_5SKiLJQSo&address=" + $("#search-input").val(),
+          success: function (data) {
+            var location = data.getElementsByTagName("location")[0];
+            var lat = location.getElementsByTagName("lat")[0].textContent;
+            var lng = location.getElementsByTagName("lng")[0].textContent;
+            $http({
+              method: 'GET', // HTTP 통신 방법
+              url: "/searchmap.do", // 통신 할 URL
+              timeout: 600000, // 1000 = 1초
+              params: {
+                lat: lat,
+                lng: lng
+              }
+            }).then(function successCallBack(response) {
+              $scope.mapList = response.data.searchedMap;
+            }, function errorCallback(error) {
+              console.log("Error" + error);
+            });
+          }
+        });
+      }
+    });
+  }); 
+  
+  </script>
   <!-- footer -->
   <footer>
     <div class="container-fluid bg-light">
