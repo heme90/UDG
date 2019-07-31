@@ -117,7 +117,8 @@
                 data: signout_info,
                 }).then(function successCallBack(response) {
                 ReadCookie();
-                sign()
+                sign();
+                window.location.href="/";
                 }), function errorCallback(error) {
                 }
             }
@@ -393,9 +394,9 @@
         <div class="row d-flex justify-content-center py-3 m-0">
             <div class="col-sm-6">
             <ul class="nav nav-justified">
-                <li class="nav-item"><div id="Gotomain" class="text-black-50">전체 지도</div></li>
-                <li class="nav-item"><div id="Gotomymap" class="text-black-50">나만의 지도</div></li>
-                <li class="nav-item"><div id="Gotomyfollowmap" class="text-black-50">팔로우</div></li>
+                <li class="nav-item"><div id="Gotomain" class="text-black-50"><a href= "">전체 지도</a></div></li>
+                <li class="nav-item"><div id="Gotomymap" class="text-black-50"><a href= "">나만의 지도</a></div></li>
+                <li class="nav-item"><div id="Gotomyfollowmap" class="text-black-50"><a href= "">팔로우</a></div></li>
             </ul>
             </div>
         </div>
