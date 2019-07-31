@@ -75,7 +75,8 @@
                 data: signout_info,
             }).then(function successCallBack(response) {
                 ReadCookie();
-                sign()
+                sign();
+                window.location.href ="/";
             }), function errorCallback(error) {
             }
             }
@@ -340,11 +341,11 @@
         <!-- menu -->
         <div class="row d-flex justify-content-center py-3 m-0">
             <div class="col-sm-6">
-            <ul class="nav nav-justified">
-                <li class="nav-item"><a href="/" class="text-black-50">전체 지도</a></li>
-                <li class="nav-item"><a href="/mymap.go" class="text-black-50">나만의 지도</a></li>
-                <li class="nav-item"><a href="/myfollowmap.go" class="text-black-50">팔로우</a></li>
-            </ul>
+                <ul class="nav nav-justified">
+                    <li class="nav-item"><div id="Gotomain" class="text-black-50"><a href= "">전체 지도</a></div></li>
+                    <li class="nav-item"><div id="Gotomymap" class="text-black-50"><a href= "">나만의 지도</a></div></li>
+                    <li class="nav-item"><div id="Gotomyfollowmap" class="text-black-50"><a href= "">팔로우</a></div></li>
+                </ul>
             </div>
         </div>
     </div>
@@ -458,7 +459,26 @@
             </div>
         </div>
     </footer>
-
+    <script>
+        var id = getCookie('id');
+        $("#Gotomain").click(function () {
+          window.location.href = '/';
+        });
+        $('#Gotomymap').click(function () {
+          if (id != "non-user") {
+            window.location.href = '/mymap.go';
+          } else {
+            alert('로그인이 필요한 서비스입니다');
+          }
+        });
+        $('#Gotomyfollowmap').click(function () {
+          if (id != "non-user") {
+            window.location.href = '/myfollowmap.go';
+          } else {
+            alert('로그인이 필요한 서비스입니다');
+          }
+        });
+    </script>
 </body>
 
 </html>
