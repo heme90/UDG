@@ -351,23 +351,25 @@ const followmaps = function (db, id, callback) {
   try {
     collection.findOne({ id: id }, { projection: { _id: 0, followmap: 1 } })
       .then((result) => { //{ followmap: { mapno: [ 3, 4 ] } }
-        if (result.followmap){
-          var nums = Array.from(new Set(result.followmap.mapno)); // 중복제거  
-          console.log("nums:", nums, typeof nums);
+        if (result) {
+          if (result.followmap) {
+            var nums = Array.from(new Set(result.followmap.mapno)); // 중복제거  
+            console.log("nums:", nums, typeof nums);
 
-          var arr = [];
-          for (i=0; i<nums.length; i++) {
-            arr.push({mapno: nums[i]})
+            var arr = [];
+            for (i = 0; i < nums.length; i++) {
+              arr.push({ mapno: nums[i] })
+            }
+            console.log(arr);
+            collection = db.collection('udgmap'); // udgmap 으로 collection switch
+            collection.find({ $or: arr }).toArray(function (err, followmaps) { // db.udgmap.find({ $or: [ { mapno: 3 }, { mapno: 4 } ] })
+              if (err) { console.error(err) }
+              console.log("result:", util.inspect(followmaps, { depth: 5 }))
+              return callback(null, followmaps);
+            })
+          } else {
+            return callback(null, null);
           }
-          console.log(arr);
-          collection = db.collection('udgmap'); // udgmap 으로 collection switch
-          collection.find({ $or: arr }).toArray(function (err, followmaps) { // db.udgmap.find({ $or: [ { mapno: 3 }, { mapno: 4 } ] })
-            if (err) { console.error(err) }
-            console.log("result:", util.inspect(followmaps, { depth: 5 }))
-            return callback(null, followmaps);
-          })
-        } else {
-          return callback(null, null);
         }
       })
   } catch (err) {
@@ -398,16 +400,19 @@ const isFollowing = function (db, id, mapno, callback) {
     .then((result) => { //{ followmap: { mapno: [ 3, 4 ] } }
     
       var isFollowing = false;
-      if (result.followmap){
-        var nums = Array.from(new Set(result.followmap.mapno)); // 중복제거  
-  
-        for (i = 0; i < nums.length; i++) {
-          if (nums[i] == mapno) {
-            isFollowing = true;
-            break;
+      if(result){
+        if (result.followmap){
+          var nums = Array.from(new Set(result.followmap.mapno)); // 중복제거  
+    
+          for (i = 0; i < nums.length; i++) {
+            if (nums[i] == mapno) {
+              isFollowing = true;
+              break;
+            }
           }
         }
       }
+
       return callback(null, isFollowing);
     });
 }
@@ -813,10 +818,17 @@ var server = http.createServer(function (req, res) {   //create web server
             result.map = mapdetail[0];
 
             isFollowing(db, post.id, post.mapno, function (err, isFollowing) {
-              console.log("결과: " + isFollowing);
-              result.isFollowing = isFollowing;
-              result = JSON.stringify(result);
-              res.end(result, 'utf-8');
+              if(err){
+                console.log("회원정보 없음")
+                result.isFollowing = false;
+                result = JSON.stringify(result);
+                res.end(result, 'utf-8');
+              } else {
+                console.log("결과: " + isFollowing);
+                result.isFollowing = isFollowing;
+                result = JSON.stringify(result);
+                res.end(result, 'utf-8');
+              }
             });
           });
         });
