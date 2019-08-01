@@ -172,3 +172,57 @@ db.udgmap.insertOne({
         { title: "18", lat: 37.54775, lng: 127.06991, desc: { content: "그리네" } }
     ]
 });
+
+db.udgmap.insertOne({
+    mapno: 5,
+    id: "park", 
+    region: "남부터미널",
+    mapname: "노래방",
+    center: [ 127.015756, 37.485959 ],
+    zoom: 16,
+    visibility: true, 
+    cnt_follow: 0, 
+    markers: [
+        { title: "1", lat: 37.48544, lng: 127.01732, desc: { content: "씨티 노래방" } },
+        { title: "2", lat: 37.48515, lng: 127.01856, desc: { content: "로얄 노래연습장" } },
+        { title: "3", lat: 37.48533, lng: 127.01882, desc: { content: "美 노래연습장" } },
+        { title: "4", lat: 37.48508, lng: 127.01582, desc: { content: "힐링 노래방" } },
+        { title: "5", lat: 37.48434, lng: 127.01444, desc: { content: "메아리 노래연습장" } },
+        { title: "6", lat: 37.48638, lng: 127.01462, desc: { content: "힐링 노래" } },
+        { title: "7", lat: 37.48608, lng: 127.01447, desc: { content: "샤르망 노래방" } },
+        { title: "8", lat: 37.48542, lng: 127.01418, desc: { content: "셰이브 노래방" } },
+        { title: "9", lat: 37.4858, lng: 127.01343, desc: { content: "플레이2라운드 노래방" } },
+        { title: "10", lat: 37.48411, lng: 127.01295, desc: { content: "알프스 노래방" } }
+    ]
+});
+
+
+db.udgmap.insertOne({
+    mapno: 6,
+    id: "park", 
+    region: "다낭",
+    mapname: "여행지도",
+    center: [  108.225110, 16.066335 ],
+    zoom: 14,
+    visibility: true, 
+    cnt_follow: 0, 
+    markers: [
+        { title: "1", lat: 16.05633, lng: 108.20255, desc: { content: "다낭 국제공항" } },
+        { title: "2", lat: 16.06674, lng: 108.21346, desc: { content: "빅씨 마트" } },
+        { title: "3", lat: 16.06771, lng: 108.21431, desc: { content: "꼰 시장" } },
+        { title: "4", lat: 16.06904, lng: 108.22487, desc: { content: "콩카페 1호점" } },
+        { title: "5", lat: 16.06825, lng: 108.22427, desc: { content: "한 시장" } },
+        { title: "6", lat: 16.06872, lng: 108.22291, desc: { content: "해피브레드" } },
+        { title: "7", lat: 16.06669, lng: 108.223, desc: { content: "핑크 성당" } },
+        { title: "8", lat: 16.0669, lng: 108.22475, desc: { content: "코바 쌀국수" } },
+        { title: "9", lat: 16.06114, lng: 108.22705, desc: { content: "용다리" } },
+        { title: "10", lat: 16.06082, lng: 108.22057, desc: { content: "더 컵스 커피" } },
+        { title: "11", lat: 16.06211, lng: 108.23131, desc: { content: "손트라 야시장" } },
+        { title: "12", lat: 16.06716, lng: 108.23418, desc: { content: "제레미 키친" } },
+        { title: "13", lat: 16.06583, lng: 108.24311, desc: { content: "논라 레스토랑" } },
+        { title: "14", lat: 16.06566, lng: 108.24604, desc: { content: "더 가든 레스토랑" } },
+        { title: "15", lat: 16.0639, lng: 108.24669, desc: { content: "미케 비치" } },
+        { title: "16", lat: 16.04787, lng: 108.2464, desc: { content: "탄탐 베이커리" } },
+        { title: "17", lat: 16.04192, lng: 108.24837, desc: { content: "냐벱 쌀국수" } }
+    ]
+});

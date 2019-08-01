@@ -9,6 +9,30 @@
   <meta name="author" content="">
   <title>우리 동네 지도</title>
   <style>
+    #search-input::-webkit-input-placeholder {
+      text-align: center;
+    }
+    .modal {
+      text-align: center;
+    }
+    .modal-dialog {
+      display: inline-block;
+      text-align: left;
+      vertical-align: middle;
+      width: 90%;
+    }
+    @media screen and (min-width: 768px) {
+      .modal:before {
+        display: inline-block;
+        vertical-align: middle;
+        content: " ";
+        height: 100%;
+      }
+      .modal-dialog:before {
+        width: 40%;
+      }
+    }
+
     #udgmap {
       height: 500px;
     }
@@ -318,7 +342,7 @@
       // 지도 왼쪽 클릭 이벤트
       g_map.addListener('click', function (event) {
         // g_map.panTo(event.latLng); // 구글맵 중심 이동
-        console.log("location : " + event.latLng);
+        // console.log("location : " + event.latLng);
         document.getElementById('location').innerHTML = event.latLng;
 
         if (move == true) {
