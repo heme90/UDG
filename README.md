@@ -1,6 +1,14 @@
 # 우리 동네 지도 (UDG)
 meanstack 기반의 지도공유 플랫폼  
 <br>
+
+### 실행법
+    
+    -node.js 설치(10.xxx)
+    -4.0.8 이상의 mongodb 설치 및 sample data 입력
+    -node PROJECT/PATH/UDG/server/serversample.js
+    
+    
 ### 기능
 
     -유저별 지도 제작 및 공유
