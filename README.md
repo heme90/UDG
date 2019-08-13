@@ -6,7 +6,7 @@ meanstack 기반의 지도공유 플랫폼
     
     -node.js 설치(10.xxx)
     -4.0.8 이상의 mongodb 설치 및 sample data 입력
-    -node PROJECT/PATH/UDG/server/serversample.js
+    -node PROJECT/PATH/UDG/server/UDGserver.js
     
     
 ### 기능
