@@ -1,9 +1,0 @@
-//user collection dcenter 경도 위도 순
-db.user.insertOne({id: 'nang',pw:'aaa',email:'nang@aaa.com', mymap : [{creator:'nang', dname:'공덕',dcenter: [126.951544,37.543433]}]});
-db.user.insertOne({id: 'karlie',pw:'bbb',email:'karlie@bbb.com', mymap : [{creator:'karlie', dname:'서초',dcenter: [127.010547, 37.491818]}]});
-db.user.updateOne({id:'nang'},{$set: {followmap: [{creator:'karlie',dname:'서초', dcenter:[127.010547,37.491818]}]}});
-
-//udgmap collection dcenter 경도 위도 순
-db.udgmap.insertOne({id:'nang', dname:'공덕',dcenter:[126.951544,37.543433], onlyme:0, cnt_follow:0, markers: [{title: '미분당', lat:37.541685, lng:126.951306, desc: {content:'쌀국수집'}}, {title:'굴다리김치찌개',lat:37.541793, lng:126.950690, desc: {content:'김치찌개집'}}]});
-db.udgmap.insertOne({id:'karlie', dname:'서초', dcenter:[ 127.01054737.491818], onlyme:0, cnt_follow:0,  markers: [{title: '엔코아', lat:37.490921, lng:127.010564, desc: {content:'본사건물'}}, {title:'플레이데이터',lat:37.486627, lng: 127.020731,desc: {content:'교육센터'}}]});
-db.udgmap.insertOne({id:'karlie', dname: '남터', dcenter:[127.016054, 37.484499], onlyme:0, cnt_follow:0, markers: []});
