@@ -1,2 +1,1 @@
-* linguist-vendored
-server/*.html linguist-vendored
+*.html linguist-vendored
